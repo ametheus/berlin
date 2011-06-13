@@ -60,15 +60,50 @@ def getkey():
     )
 
 def file_put_contents( filename, data ):
-    """I kinda miss this PHP function"""
+    """Write str({data}) to the file {filename}."""
     f = open( filename, 'w' )
     f.write( data )
     f.close()
 
 def file_put_data( filename, data ):
+    """Perform the opposite of parse_file().
+    
+    Create a file at {filename} parsable by parse_file(), using {data}.
+    
+    Examples:
+    
+    >>> D = dict({'test': ['a', 'b', 'c']})
+    >>> file_put_data('/tmp/doctest_file_put_data',D)
+    >>> E = parse_file('/tmp/doctest_file_put_data')
+    >>> E['test']
+    ['a', 'b', 'c']
+    >>> E['test another value']
+    ['undefined']"""
+    
     file_put_contents( filename, unparse_file( data ) )
 
 def parse_file( filename ):
+    """Parse a simple config file.
+    
+    Parse a file in the form
+    key: val1 val2  val3 val4
+    to a defauktdict in the form
+    dict({'key': ['val1','val2','val3','val4']})
+    
+    Examples:
+    
+    >>> P = parse_file('/dev/null')
+    >>> P['key']
+    ['undefined']
+    
+    >>> Q = dict({'key': ['val1','val2','val3','val4']})
+    >>> file_put_data('/tmp/doctest_parse_file',Q)
+    >>> R = parse_file('/tmp/doctest_parse_file')
+    >>> R['key']
+    ['val1', 'val2', 'val3', 'val4']
+    
+    """
+    
     rv = defaultdict(lambda:['undefined'])
     try:
         f = open( filename, 'r' )
@@ -725,6 +760,6 @@ class Host:
 
 
 if __name__ == '__main__':
-    C = Config( " vboxnet0\n wlan0\n eth0\n" )
-    C.UI_loop()
     
+    import doctest
+    doctest.testmod()
