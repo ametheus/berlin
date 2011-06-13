@@ -119,6 +119,22 @@ def parse_file( filename ):
     return rv
 
 def unparse_file( data ):
+    """String-format a configuration file.
+    
+    Re-casts a dict as returned by parse_file() to a string.
+    
+    Examples:
+    >>> unparse_file(dict({'key':['val'],'key1':['val1','val2']}))
+    'key1: val1 val2\\nkey: val\\n\\n'
+    >>> unparse_file(None)
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'NoneType' object has no attribute 'items'
+    >>> unparse_file(dict())
+    '\\n\\n'
+    
+    """
+    
     return "\n".join(
         [ ': '.join(r) for r in
             [ (t[0], ' '.join(t[1]) ) for t in data.items() ]]
