@@ -1,0 +1,65 @@
+Vuurmuur is a collection of firewall configuration scripts.
+
+Vuurmuur is an attempt to make my personal firewall config scripts available to
+the public. The word "vuurmuur" is a Dutch translation of "fire-wall."
+
+Key features:
+ -  Easily deployable NAT firewall
+ -  Multiple subnets
+ -  IP based ad filtering
+
+
+Requirements:
+ -  python
+ -  iptables
+
+Optional:
+ -  Apache 2 for ad filtering
+ -  mod_proxy_http for more advanced ad filtering
+ -  PHP5 for even more advanced ad filtering
+
+
+To set up, verify every network interface is installed and working correctly.
+After that, run  deploy.sh  as root, and follow the on-screen instructions.
+
+generate-config.py is a simple text-based UI designed to help you configure
+your router. It is also possible (and sometimes necessary) to modify the con-
+figuration files by hand.
+
+After modifying the configuration files, run  rules.py  to generate the corres-
+ponding iptables rules, or run  firewall  to immediately install the new rule-
+set as well.
+
+Below is a list of each configuration file, and its function.
+
+    apache/
+                Directory containing apache-specific configuration files
+      default.html
+      favicon.ico
+                Default file to show instead of blocked content. The favicon
+                is shown instead of any /favicon.ico request.
+      filtered/*
+                Pages that require more advanced filtering are stored here.
+      greylist.conf
+      whitelist.conf
+                A grey- and whitelist respectively.
+                Hosts on the whitelist will not get blocked; hosts on the grey-
+                list are filtered according to the corresponding PHP file.
+    
+    config/
+      networks/*
+                All internal subnets are defined here
+      if-config
+                Configuration concerning the installed NICs
+      ad-hosts
+      malware-hosts
+                Hosts (IP addresses) containing lots of ads or malware respec-
+                tively. Any HTTP connection to an address on this list will be
+                rerouted to a local apache installation, which will, in most
+                cases, block the content.
+      smtp-hosts
+                A list of SMTP servers to which it is ok to connect.
+                Users on the network will not be able to establish an SMTP
+                connection to any IP not on this list, effectively preventing
+                them from participating in any spam bot network.
+
