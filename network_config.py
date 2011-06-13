@@ -23,6 +23,20 @@ from collections import *
 from getpass import getuser
 
 def getkey():
+    """Capture a single key press.
+    
+    Capture a key press event, and return the appropriate data in a tuple
+    (c,(x,x,x,x)), where c denotes the character value of the key pressed,
+    while the (x,x,x,x) tuple contains the numeric value of the 4 original
+    bytes. This can be useful if the key pressed has no visible form.
+    
+    Examples:
+    
+    Pressing <c>     results in  ('c',(99,0,0,0))
+    Pressing <enter> results in  ('\n',(10,0,0,0))
+    Pressing <up>    results in  ('', (27,91,65,0))
+    Pressing <F12>   results in  ('', (27, 91, 50, 52))"""
+    
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     new = termios.tcgetattr(fd)
