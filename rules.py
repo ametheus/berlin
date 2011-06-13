@@ -37,12 +37,18 @@ debuglevel = 1
 
 
 def debug( importance, str, newline=True ):
+    """Send {str} to stdout. Maybe.
+    
+    If {importance} is high enough, send {str} to stdout."""
+    
     if importance >= debuglevel:
         sys.stdout.write( "{0}{1}".format( str, "\n" if newline else "" ) )
 
 all_chains = dict({})
 
 def initialize_chains():
+    """Create default empty tables and chains."""
+    
     global all_chains
     global malware_blocked, ads_blocked
     
@@ -63,6 +69,10 @@ def initialize_chains():
     ads_blocked = False
 
 def new_chain(chain,table='filter',policy='DROP'):
+    """Add a new chain.
+    
+    Add a new chain {chain} to {table} with default policy {policy}."""
+    
     global all_chains
     
     if not table in all_chains:
@@ -76,6 +86,10 @@ def new_chain(chain,table='filter',policy='DROP'):
         raise Exception("Chain {0} in table {1} already exists.")
 
 def append_chain( chain, rule, table='filter', comments=False ):
+    """Append a rule to a chain.
+    
+    Append {rule} to {chain} in {table}."""
+    
     global all_chains
     if not chain in all_chains[table]:
         raise Exception("Chain '{0}' does not yet exist. Try creating it explicitly.")
@@ -92,6 +106,8 @@ malware_blocked = False
 ads_blocked = False
 
 def malware( Net ):
+    """Apply the 'malware' policy to the subnet."""
+    
     global malware_blocked
     
     if not malware_blocked:
@@ -104,6 +120,8 @@ def malware( Net ):
         table='nat'
     )
 def adblock( Net ):
+    """Apply the 'adblock' policy to the subnet."""
+    
     global ads_blocked
     
     if not ads_blocked:
@@ -117,6 +135,8 @@ def adblock( Net ):
     )
 
 def IP_addresses_from_files( filenames ):
+    """Return all valid IPv4 addresses """
+    
     f = subprocess.Popen( ['cat'] + filenames, stdout = subprocess.PIPE )
     gr = subprocess.Popen(
         ['sh','-c','grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}" | sort | uniq'],
@@ -128,6 +148,12 @@ def IP_addresses_from_files( filenames ):
     return s.split()
 
 def create_filter( name, files, table='nat', action='-g to_gateway' ):
+    """Create an outbound filter.
+    
+    Create a separate filter chain called {name}. As soon as a tcp packet is
+    detected to an IP address in any one of the files in {files}, the {action}
+    is performed."""
+    
     global anything_blocked
     
     addresses = IP_addresses_from_files( files )
@@ -146,6 +172,8 @@ def create_filter( name, files, table='nat', action='-g to_gateway' ):
 
 
 def output_chains():
+    """Export all chains in iptables-restore format."""
+    
     global all_chains
     
     counters = dict({
