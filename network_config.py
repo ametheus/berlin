@@ -142,6 +142,7 @@ def unparse_file( data ):
 
 
 class Config:
+    """Complete network configuration for vuurmuur."""
     
     Interfaces = None
     ifconfig = None
@@ -153,6 +154,7 @@ class Config:
     network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
     
     def __init__( self, network_devices=None ):
+        """Parses the config directories into a Config class."""
         
         self.Interfaces = []
         self.ifconfig = parse_file("config/if-config")
@@ -192,6 +194,7 @@ class Config:
         self.tion = ( self.Interfaces[0], None, None )
     
     def Export( self ):
+        """Writes back all config files into /tmp/firewall/."""
         
         ifaces_file = self.interfaces_file()
         
@@ -209,6 +212,10 @@ class Config:
     
     
     def if_config_file( self ):
+        """Creates a new config/if-config file based on current settings.
+        
+        Returns the contents of the new config/if-config file in a string."""
+        
         rv = dict()
         rv['wan address'] = \
             [ d.wan_address for d in self.Interfaces if d.wan_interface and d.enabled ]
@@ -224,6 +231,10 @@ class Config:
     
     
     def interfaces_file( self ):
+        """Creates a new /etc/network/interfaces file.
+        
+        Returns the contents of the /etc/network/interfaces file in a string."""
+        
         s = """# This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -237,6 +248,10 @@ iface lo inet loopback
     
     
     def dhcp_conf( self ):
+        """Creates a new /etc/dhcp3/dhcpd.conf file.
+        
+        Returns the contents of the /etc/dhcp3/dhcpd.conf file in a string."""
+        
         rv = "ddns-updates off;" + "\n" + \
             "ddns-update-style interim;" + "\n" + \
             "authoritative;" + "\n" + \
@@ -255,6 +270,8 @@ iface lo inet loopback
     
     
     def arrow_key( self, hm ):
+        """Handle the arrow key pess events."""
+        
         if self.tion[1] == None:
             i = self.Interfaces.index( self.tion[0] ) + hm
             i = i if i >= 0 else 0
@@ -274,6 +291,11 @@ iface lo inet loopback
             self.tion = ( self.tion[0], sn, sn.hosts[i] )
     
     def UI_loop( self ):
+        """Run the UI.
+        
+        Display a simple text-based UI, and perform actions according to user
+        interaction."""
+        
         self.Display( UI_options=True )
         quit = False
         while not quit:
@@ -395,6 +417,10 @@ rmdir /tmp/firewall"""
                 self.Display( UI_options=True )
     
     def UI_optns( self ):
+        """Show the keyboard shortcuts
+        
+        Show the keyboard shortcuts relevant to the current selection."""
+        
         print "\n"*( 30 - self.c if self.c < 30 else 1 )
         if self.tion[1] == None:
             print " [+]   Enable interface    [-]   Disable interface   [w]   Toggle WAN interface"
