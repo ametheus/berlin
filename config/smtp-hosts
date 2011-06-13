@@ -1,0 +1,41 @@
+
+    Copyright (C) 2011  Thijs van Dijk
+
+    This file is part of vuurmuur.
+
+    Vuurmuur is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Vuurmuur is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    file "COPYING" for details.
+
+This file contains all IP addresses to which an (encrypted) SMTP 
+connection may be established. All other traffic on ports 587 or
+465 will be rejected, as will ALL traffic on port 25.
+
+  ===  FREE SERVICES THAT REQUIRE LOGON  ===
+
+*   Gmail
+( smtp.gmail.com )
+209.85.143.109
+
+*   Hotmail, or whatever it is they call themselves today
+( smtp.live.com )
+65.55.162.200
+( smtp.email.msn.com )
+65.54.234.141
+
+*   Yahoo!
+( smtp.mail.yahoo.com )
+98.136.185.95
+98.138.84.55
+98.139.212.139
+( plus.smtp.mail.yahoo.com )
+76.13.13.48
+
+
+

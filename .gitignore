@@ -1,0 +1,8 @@
+*~
+*.pyc
+
+config/if-config
+config/networks/*
+
+old.rules/*
+rules
