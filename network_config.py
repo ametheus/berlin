@@ -23,6 +23,20 @@ from collections import *
 from getpass import getuser
 
 def getkey():
+    """Capture a single key press.
+    
+    Capture a key press event, and return the appropriate data in a tuple
+    (c,(x,x,x,x)), where c denotes the character value of the key pressed,
+    while the (x,x,x,x) tuple contains the numeric value of the 4 original
+    bytes. This can be useful if the key pressed has no visible form.
+    
+    Examples:
+    
+    Pressing <c>     results in  ('c',(99,0,0,0))
+    Pressing <enter> results in  ('\n',(10,0,0,0))
+    Pressing <up>    results in  ('', (27,91,65,0))
+    Pressing <F12>   results in  ('', (27, 91, 50, 52))"""
+    
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     new = termios.tcgetattr(fd)
@@ -46,15 +60,50 @@ def getkey():
     )
 
 def file_put_contents( filename, data ):
-    """I kinda miss this PHP function"""
+    """Write str({data}) to the file {filename}."""
     f = open( filename, 'w' )
     f.write( data )
     f.close()
 
 def file_put_data( filename, data ):
+    """Perform the opposite of parse_file().
+    
+    Create a file at {filename} parsable by parse_file(), using {data}.
+    
+    Examples:
+    
+    >>> D = dict({'test': ['a', 'b', 'c']})
+    >>> file_put_data('/tmp/doctest_file_put_data',D)
+    >>> E = parse_file('/tmp/doctest_file_put_data')
+    >>> E['test']
+    ['a', 'b', 'c']
+    >>> E['test another value']
+    ['undefined']"""
+    
     file_put_contents( filename, unparse_file( data ) )
 
 def parse_file( filename ):
+    """Parse a simple config file.
+    
+    Parse a file in the form
+    key: val1 val2  val3 val4
+    to a defauktdict in the form
+    dict({'key': ['val1','val2','val3','val4']})
+    
+    Examples:
+    
+    >>> P = parse_file('/dev/null')
+    >>> P['key']
+    ['undefined']
+    
+    >>> Q = dict({'key': ['val1','val2','val3','val4']})
+    >>> file_put_data('/tmp/doctest_parse_file',Q)
+    >>> R = parse_file('/tmp/doctest_parse_file')
+    >>> R['key']
+    ['val1', 'val2', 'val3', 'val4']
+    
+    """
+    
     rv = defaultdict(lambda:['undefined'])
     try:
         f = open( filename, 'r' )
@@ -70,6 +119,22 @@ def parse_file( filename ):
     return rv
 
 def unparse_file( data ):
+    """String-format a configuration file.
+    
+    Re-casts a dict as returned by parse_file() to a string.
+    
+    Examples:
+    >>> unparse_file(dict({'key':['val'],'key1':['val1','val2']}))
+    'key1: val1 val2\\nkey: val\\n\\n'
+    >>> unparse_file(None)
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'NoneType' object has no attribute 'items'
+    >>> unparse_file(dict())
+    '\\n\\n'
+    
+    """
+    
     return "\n".join(
         [ ': '.join(r) for r in
             [ (t[0], ' '.join(t[1]) ) for t in data.items() ]]
@@ -77,6 +142,7 @@ def unparse_file( data ):
 
 
 class Config:
+    """Complete network configuration for vuurmuur."""
     
     Interfaces = None
     ifconfig = None
@@ -88,6 +154,7 @@ class Config:
     network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
     
     def __init__( self, network_devices=None ):
+        """Parses the config directories into a Config class."""
         
         self.Interfaces = []
         self.ifconfig = parse_file("config/if-config")
@@ -127,6 +194,7 @@ class Config:
         self.tion = ( self.Interfaces[0], None, None )
     
     def Export( self ):
+        """Writes back all config files into /tmp/firewall/."""
         
         ifaces_file = self.interfaces_file()
         
@@ -144,6 +212,10 @@ class Config:
     
     
     def if_config_file( self ):
+        """Creates a new config/if-config file based on current settings.
+        
+        Returns the contents of the new config/if-config file in a string."""
+        
         rv = dict()
         rv['wan address'] = \
             [ d.wan_address for d in self.Interfaces if d.wan_interface and d.enabled ]
@@ -159,6 +231,10 @@ class Config:
     
     
     def interfaces_file( self ):
+        """Creates a new /etc/network/interfaces file.
+        
+        Returns the contents of the /etc/network/interfaces file in a string."""
+        
         s = """# This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -172,6 +248,10 @@ iface lo inet loopback
     
     
     def dhcp_conf( self ):
+        """Creates a new /etc/dhcp3/dhcpd.conf file.
+        
+        Returns the contents of the /etc/dhcp3/dhcpd.conf file in a string."""
+        
         rv = "ddns-updates off;" + "\n" + \
             "ddns-update-style interim;" + "\n" + \
             "authoritative;" + "\n" + \
@@ -190,6 +270,8 @@ iface lo inet loopback
     
     
     def arrow_key( self, hm ):
+        """Handle the arrow key pess events."""
+        
         if self.tion[1] == None:
             i = self.Interfaces.index( self.tion[0] ) + hm
             i = i if i >= 0 else 0
@@ -209,6 +291,11 @@ iface lo inet loopback
             self.tion = ( self.tion[0], sn, sn.hosts[i] )
     
     def UI_loop( self ):
+        """Run the UI.
+        
+        Display a simple text-based UI, and perform actions according to user
+        interaction."""
+        
         self.Display( UI_options=True )
         quit = False
         while not quit:
@@ -330,6 +417,10 @@ rmdir /tmp/firewall"""
                 self.Display( UI_options=True )
     
     def UI_optns( self ):
+        """Show the keyboard shortcuts
+        
+        Show the keyboard shortcuts relevant to the current selection."""
+        
         print "\n"*( 30 - self.c if self.c < 30 else 1 )
         if self.tion[1] == None:
             print " [+]   Enable interface    [-]   Disable interface   [w]   Toggle WAN interface"
@@ -352,6 +443,8 @@ rmdir /tmp/firewall"""
     
     @staticmethod
     def sort_iface( a, b ):
+        """A sorting function for Iface's"""
+        
         if ( not a.enabled ) and ( b.enabled ):
             return -1
         if ( a.enabled ) and ( not b.enabled ):
@@ -367,6 +460,7 @@ rmdir /tmp/firewall"""
     
     c = 0
     def display_line( self, str, obj ):
+        """Display the jagged line and the word "INTERNET." """
         
         curs = -1
         if obj == self.tion[0] and self.tion[0] != None and self.drawn < 1:
@@ -389,6 +483,7 @@ rmdir /tmp/firewall"""
         self.c += 1
     
     def Display( self, UI_options=False ):
+        """Print a graphic representation of the network topology to stdout."""
         
         self.c = 0
         self.drawn = 0
@@ -427,6 +522,11 @@ class Iface:
     subnets = None
     
     def __init__( self, name='##', ifconfig=defaultdict(lambda:'undefined'), nets=[] ):
+        """Create a new Iface object.
+        
+        Create a new Iface object, adding all appropriate subnets to its own
+        collection."""
+        
         self.name = name
         self.subnets = []
         if name in ifconfig['external interface']:
@@ -452,6 +552,11 @@ class Iface:
         return "ifx{{name}}".format( name=self.name )
     
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '{intsep}{og}{iface:^10s}{fg}   ({addr}){dhcp}'.format(
             intsep = '====' if self.wan_interface else '    ',
             iface = self.name,
@@ -477,12 +582,16 @@ class Iface:
         prn('', self)
     
     def Export( self, dir ):
+        """For each subnet, write config files to disk."""
+        
         if self.wan_interface or not self.enabled:
             return
         for S in self.subnets:
             S.Export( dir, self.name )
     
     def interfaces_file( self ):
+        """Represent itself in a /etc/network/interfaces file."""
+        
         if not self.enabled:
             return ""
         if self.wan_interface:
@@ -517,6 +626,8 @@ broadcast {pref}.255
     
     
     def subnet_decl( self ):
+        """For each subnet, create a representation for the DHCP config file."""
+        
         if self.wan_interface or not self.enabled:
             return ""
         
@@ -525,6 +636,9 @@ broadcast {pref}.255
         )
     
     def host_decl( self ):
+        """For each host in each subnet, create a representation for the DHCP
+        config file."""
+        
         return "\t\n".join(
             [ t.host_decl() for t in self.subnets ]
         )
@@ -561,11 +675,20 @@ class Subnet:
         self.interface = ' '.join(nc['interface'])
     
     def net( self ):
+        """Return the subnet address in the form 192.168.x.0/24."""
+        
         return '192.168.{net}.0/24'.format(net=self.address)
     def gw( self ):
+        """Return the default gateway, in the form 192.168.x.1."""
+        
         return '192.168.{net}.1'.format(net=self.address)
     
     def Export( self, dir, iface ):
+        """Write the appropriate config files into {dir}.
+        
+        Write the appropriate config files into {dir}, ising {iface} as its
+        parent Iface object."""
+        
         os.mkdir( dir + "/" + self.address )
         os.mkdir( dir + "/" + self.address + '/hosts' )
         
@@ -581,10 +704,14 @@ class Subnet:
     
     @staticmethod
     def sort_host( a, b ):
+        """Sort function for Host's"""
+        
         return a.addr - b.addr
     
     
     def toggle_policy( self, policy ):
+        """Add or remove {policy} from the policy list."""
+        
         if policy in self.policies:
             i = self.policies.index( policy )
             self.policies.pop(i)
@@ -594,6 +721,11 @@ class Subnet:
             return True
 
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '{{{{ {name:<30s} ({addr:>3s}) }}}}'.format(
             name = self.name,
             addr = self.address
@@ -610,6 +742,11 @@ class Subnet:
         cb( '', self )
     
     def interfaces_file( self, iface ):
+        """Return an entry for /etc/network/interfaces.
+        
+        Return an entry for /etc/network/interfaces as a string, using {iface}
+        as the network interface name."""
+        
         return """auto {iface}
 iface {iface} inet static
 name {desc}
@@ -627,6 +764,8 @@ broadcast 192.168.{net}.255
     
     
     def subnet_decl( self ):
+        """Return an entry in /etc/dhcp3/dhcpd.conf as a string."""
+        
         rv = "\t" + "# Subnet '{desc}'" + "\n" + \
             "\t" + "subnet 192.168.{net}.0 netmask 255.255.255.0 {{" + "\n" + \
             "\t\t" + "range 192.168.{net}.100 192.168.{net}.200;" + "\n" + \
@@ -648,6 +787,8 @@ broadcast 192.168.{net}.255
         )
     
     def host_decl( self ):
+        """Return a string of all host declarations."""
+        
         return "".join(
             [ t.host_decl( self.address ) for t in self.hosts ]
         )
@@ -655,6 +796,7 @@ broadcast 192.168.{net}.255
 
 
 class Host:
+    """A single network host."""
     
     mac = '';
     addr = '';
@@ -677,6 +819,11 @@ class Host:
         self.comment = cc if cc != 'undefined' else ''
     
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '* ({ext:>3d}): {mac}  {name}'.format(
             ext = self.addr,
             mac = self.mac,
@@ -686,6 +833,8 @@ class Host:
         #    cb( '     "{comment}"'.format( comment = self.comment ), self )
     
     def Export( self, dir ):
+        """Export a host file to {dir}."""
+        
         rv = dict()
         rv['comment'] = [self.comment]
         rv['hardware ethernet'] = [self.mac]
@@ -693,6 +842,8 @@ class Host:
         file_put_data( dir + "/" + self.name, rv )
     
     def host_decl( self, net ):
+        """Export a host declaration for dhcpd.conf"""
+        
         rv = \
             "\t" + "# {desc}" + "\n" + \
             "\t" + "host {name} {{" + "\n" + \
@@ -711,6 +862,6 @@ class Host:
 
 
 if __name__ == '__main__':
-    C = Config( " vboxnet0\n wlan0\n eth0\n" )
-    C.UI_loop()
     
+    import doctest
+    doctest.testmod()
