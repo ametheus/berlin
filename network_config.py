@@ -443,6 +443,8 @@ rmdir /tmp/firewall"""
     
     @staticmethod
     def sort_iface( a, b ):
+        """A sorting function for Iface's"""
+        
         if ( not a.enabled ) and ( b.enabled ):
             return -1
         if ( a.enabled ) and ( not b.enabled ):
@@ -458,6 +460,7 @@ rmdir /tmp/firewall"""
     
     c = 0
     def display_line( self, str, obj ):
+        """Display the jagged line and the word "INTERNET." """
         
         curs = -1
         if obj == self.tion[0] and self.tion[0] != None and self.drawn < 1:
@@ -480,6 +483,7 @@ rmdir /tmp/firewall"""
         self.c += 1
     
     def Display( self, UI_options=False ):
+        """Print a graphic representation of the network topology to stdout."""
         
         self.c = 0
         self.drawn = 0
@@ -518,6 +522,11 @@ class Iface:
     subnets = None
     
     def __init__( self, name='##', ifconfig=defaultdict(lambda:'undefined'), nets=[] ):
+        """Create a new Iface object.
+        
+        Create a new Iface object, adding all appropriate subnets to its own
+        collection."""
+        
         self.name = name
         self.subnets = []
         if name in ifconfig['external interface']:
@@ -543,6 +552,11 @@ class Iface:
         return "ifx{{name}}".format( name=self.name )
     
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '{intsep}{og}{iface:^10s}{fg}   ({addr}){dhcp}'.format(
             intsep = '====' if self.wan_interface else '    ',
             iface = self.name,
@@ -568,12 +582,16 @@ class Iface:
         prn('', self)
     
     def Export( self, dir ):
+        """For each subnet, write config files to disk."""
+        
         if self.wan_interface or not self.enabled:
             return
         for S in self.subnets:
             S.Export( dir, self.name )
     
     def interfaces_file( self ):
+        """Represent itself in a /etc/network/interfaces file."""
+        
         if not self.enabled:
             return ""
         if self.wan_interface:
@@ -608,6 +626,8 @@ broadcast {pref}.255
     
     
     def subnet_decl( self ):
+        """For each subnet, create a representation for the DHCP config file."""
+        
         if self.wan_interface or not self.enabled:
             return ""
         
@@ -616,6 +636,9 @@ broadcast {pref}.255
         )
     
     def host_decl( self ):
+        """For each host in each subnet, create a representation for the DHCP
+        config file."""
+        
         return "\t\n".join(
             [ t.host_decl() for t in self.subnets ]
         )
@@ -652,11 +675,20 @@ class Subnet:
         self.interface = ' '.join(nc['interface'])
     
     def net( self ):
+        """Return the subnet address in the form 192.168.x.0/24."""
+        
         return '192.168.{net}.0/24'.format(net=self.address)
     def gw( self ):
+        """Return the default gateway, in the form 192.168.x.1."""
+        
         return '192.168.{net}.1'.format(net=self.address)
     
     def Export( self, dir, iface ):
+        """Write the appropriate config files into {dir}.
+        
+        Write the appropriate config files into {dir}, ising {iface} as its
+        parent Iface object."""
+        
         os.mkdir( dir + "/" + self.address )
         os.mkdir( dir + "/" + self.address + '/hosts' )
         
@@ -672,10 +704,14 @@ class Subnet:
     
     @staticmethod
     def sort_host( a, b ):
+        """Sort function for Host's"""
+        
         return a.addr - b.addr
     
     
     def toggle_policy( self, policy ):
+        """Add or remove {policy} from the policy list."""
+        
         if policy in self.policies:
             i = self.policies.index( policy )
             self.policies.pop(i)
@@ -685,6 +721,11 @@ class Subnet:
             return True
 
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '{{{{ {name:<30s} ({addr:>3s}) }}}}'.format(
             name = self.name,
             addr = self.address
@@ -701,6 +742,11 @@ class Subnet:
         cb( '', self )
     
     def interfaces_file( self, iface ):
+        """Return an entry for /etc/network/interfaces.
+        
+        Return an entry for /etc/network/interfaces as a string, using {iface}
+        as the network interface name."""
+        
         return """auto {iface}
 iface {iface} inet static
 name {desc}
@@ -718,6 +764,8 @@ broadcast 192.168.{net}.255
     
     
     def subnet_decl( self ):
+        """Return an entry in /etc/dhcp3/dhcpd.conf as a string."""
+        
         rv = "\t" + "# Subnet '{desc}'" + "\n" + \
             "\t" + "subnet 192.168.{net}.0 netmask 255.255.255.0 {{" + "\n" + \
             "\t\t" + "range 192.168.{net}.100 192.168.{net}.200;" + "\n" + \
@@ -739,6 +787,8 @@ broadcast 192.168.{net}.255
         )
     
     def host_decl( self ):
+        """Return a string of all host declarations."""
+        
         return "".join(
             [ t.host_decl( self.address ) for t in self.hosts ]
         )
