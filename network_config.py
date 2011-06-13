@@ -796,6 +796,7 @@ broadcast 192.168.{net}.255
 
 
 class Host:
+    """A single network host."""
     
     mac = '';
     addr = '';
@@ -818,6 +819,11 @@ class Host:
         self.comment = cc if cc != 'undefined' else ''
     
     def Display( self, cb ):
+        """Create a graphic representation.
+        
+        Create a graphic representation, calling  cb(S)  for each line  S  to
+        be printed."""
+        
         cb( '* ({ext:>3d}): {mac}  {name}'.format(
             ext = self.addr,
             mac = self.mac,
@@ -827,6 +833,8 @@ class Host:
         #    cb( '     "{comment}"'.format( comment = self.comment ), self )
     
     def Export( self, dir ):
+        """Export a host file to {dir}."""
+        
         rv = dict()
         rv['comment'] = [self.comment]
         rv['hardware ethernet'] = [self.mac]
@@ -834,6 +842,8 @@ class Host:
         file_put_data( dir + "/" + self.name, rv )
     
     def host_decl( self, net ):
+        """Export a host declaration for dhcpd.conf"""
+        
         rv = \
             "\t" + "# {desc}" + "\n" + \
             "\t" + "host {name} {{" + "\n" + \
