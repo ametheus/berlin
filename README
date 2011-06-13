@@ -6,7 +6,11 @@ the public. The word "vuurmuur" is a Dutch translation of "fire-wall."
 Key features:
  -  Easily deployable NAT firewall
  -  Multiple subnets
- -  IP based ad filtering
+ -  IP based advertisement filtering
+
+
+Vuurmuur is available under the terms of the GNU Public License, version 3, or,
+at your discretion, any later version. See the file COPYING for details.
 
 
 Requirements:
