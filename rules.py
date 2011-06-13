@@ -157,7 +157,7 @@ def create_filter( name, files, table='nat', action='-g to_gateway' ):
     global anything_blocked
     
     addresses = IP_addresses_from_files( files )
-    new_chain( name, table=table, policy='-' )
+    new_chain( name, table=table, policy='RETURN' )
     
     for IP in addresses:
         append_chain(
