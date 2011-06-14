@@ -19,9 +19,6 @@
 
 import os,subprocess
 
-# Kittenwar server
-KW = '205.196.209.62'
-
 class Ruleset:
     """A collection of iptables rules.
     
