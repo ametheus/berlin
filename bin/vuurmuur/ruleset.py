@@ -280,6 +280,6 @@ if __name__ == '__main__':
     import os,doctest
     doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
     
-    #os.unlink('/tmp/doctest_IP_addresses_from_files')
-    #os.unlink('/tmp/doctest_create_filter')
-    #os.unlink('/tmp/doctest_output_chains')
+    os.unlink('/tmp/doctest_IP_addresses_from_files')
+    os.unlink('/tmp/doctest_create_filter')
+    os.unlink('/tmp/doctest_output_chains')
