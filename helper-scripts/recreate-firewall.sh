@@ -17,7 +17,7 @@
 #
 
 
-cd /etc/firewall.d
+cd /etc/firewall.d/bin/vuurmuur
 python rules.py
 
 

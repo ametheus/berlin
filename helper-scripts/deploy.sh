@@ -37,8 +37,8 @@ apt-get install -qq \
 ln -s "$(pwd)" /etc/firewall.d 2>/dev/null
 
 # Link the binaries
-ln -s /etc/firewall.d/firewall              /sbin/firewall
-ln -s /etc/firewall.d/restore-firewall      /sbin/restore-firewall
+ln -s /etc/firewall.d/helper-scripts/recreate-firewall.sh   /sbin/firewall
+ln -s /etc/firewall.d/helper-scripts/restore-firewall.sh    /sbin/restore-firewall
 
 
 
@@ -66,6 +66,7 @@ service apache2 restart
 
 
 # Generate configuration files
+cd /etc/firewall.d/bin
 ./generate-config.py --blind-faith
 
 
@@ -81,6 +82,7 @@ rmdir /tmp/firewall
 
 # Execute the scripts
 /sbin/firewall
+/etc/init.d/networking restart
 service dhcp3-server restart
 
 

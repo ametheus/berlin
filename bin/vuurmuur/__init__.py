@@ -17,14 +17,4 @@
 
 """
 
-import network_config
-import sys
-
-
-C = network_config.Config()
-C.UI_loop()
-
-
-if '--blind-faith' in sys.argv:
-    C.Export()
-
+from network_config import Config
