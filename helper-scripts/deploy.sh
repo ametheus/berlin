@@ -25,7 +25,7 @@ then
 fi
 
 # Change into vuurmuur's root directory
-cd $(basename $0)/..
+cd $(dirname $0)/..
 
 # Make sure required packages are installed
 apt-get install -qq \
