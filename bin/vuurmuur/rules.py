@@ -111,7 +111,7 @@ def malware( Net ):
     global malware_blocked
     
     if not malware_blocked:
-        create_filter( 'malware_filter', ["config/malware-hosts"] )
+        create_filter( 'malware_filter', ["malware-hosts"] )
         malware_blocked = True
     append_chain(
         'PREROUTING',
@@ -125,7 +125,7 @@ def adblock( Net ):
     global ads_blocked
     
     if not ads_blocked:
-        create_filter( 'ad_filter', ["config/ad-hosts","config/malware-hosts"] )
+        create_filter( 'ad_filter', ["ad-hosts","malware-hosts"] )
         ads_blocked = True
     append_chain(
         'PREROUTING',
@@ -135,12 +135,17 @@ def adblock( Net ):
     )
 
 def IP_addresses_from_files( filenames ):
-    """Return all valid IPv4 addresses """
+    """Return all valid IPv4 addresses from every file in {filenames}"""
     
-    f = subprocess.Popen( ['cat'] + filenames, stdout = subprocess.PIPE )
+    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/','']
+    files = sum([[L+F for F in filenames] for L in locations],[])
+    f = subprocess.Popen(
+            ['cat'] + files,
+            stdout = subprocess.PIPE, stderr = open('/dev/null','w')
+    )
     gr = subprocess.Popen(
-        ['sh','-c','grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}" | sort | uniq'],
-        stdin = f.stdout, stdout = subprocess.PIPE
+            ['sh','-c','grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}" | sort | uniq'],
+            stdin = f.stdout, stdout = subprocess.PIPE
     )
     f.stdout.close()
     s = gr.stdout.read()
@@ -181,7 +186,7 @@ def output_chains():
         'nat': ['PREROUTING','POSTROUTING','OUTPUT']
     })
     
-    fn = '/etc/firewall.d/rules' if getuser() == 'root' else '/tmp/rules'
+    fn = '/etc/vuurmuur/rules' if getuser() == 'root' else '/tmp/rules'
     f = open(fn,'w')
     
     for tb in ['nat','filter']:
@@ -380,7 +385,7 @@ if __name__ == '__main__':
     
     
     append_chain('FORWARD','# Reject all SMTP traffic save for a few trusted destinations' )
-    create_filter( 'smtp_filter', ["config/smtp-hosts"], table='filter',
+    create_filter( 'smtp_filter', ["smtp-hosts"], table='filter',
                   action='-j ACCEPT')
     append_chain( 'smtp_filter', '-j LOG --log-prefix "  [SMTP] "' )
     append_chain( 'smtp_filter', '-j REJECT --reject-with icmp-port-unreachable' )

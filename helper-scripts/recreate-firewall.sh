@@ -17,20 +17,10 @@
 #
 
 
-cd /etc/firewall.d
+cd /usr/share/vuurmuur/bin/vuurmuur
+python rules.py
 
-GITOUT="$(git pull origin master 2>/dev/null)"
 
-FW="rules.py|config/ad-hosts|config/malware-hosts|config/smtp-hosts|update-firewall.sh"
-AP="apache"
-
-if [ "$(echo "$GITOUT" | grep -P " ($FW)[ ]+\|")" != "" ]; then
-    echo "Recreating firewall rules."
-    /sbin/firewall
-fi
-if [ "$(echo "$GITOUT" | grep -P "$AP")" != "" ]; then
-    service apache2 reload
-fi
-
-git fetch --all >/dev/null
-
+/sbin/iptables-restore < /etc/vuurmuur/rules
+mkdir -p /etc/vuurmuur/old.rules
+cp /etc/vuurmuur/rules "/etc/vuurmuur/old.rules/rules-$(date '+%F %T')"

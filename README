@@ -24,9 +24,10 @@ Optional:
 
 
 To set up, verify every network interface is installed and working correctly.
-After that, run  deploy.sh  as root, and follow the on-screen instructions.
+After that, run  helper-scripts/deploy.sh  as root, and follow the on-screen
+instructions.
 
-generate-config.py is a simple text-based UI designed to help you configure
+bin/generate-config.py is a simple text-based UI designed to help you configure
 your router. It is also possible (and sometimes necessary) to modify the con-
 figuration files by hand.
 
@@ -36,7 +37,7 @@ set as well.
 
 Below is a list of each configuration file, and its function.
 
-    apache/
+    ./apache/
                 Directory containing apache-specific configuration files
       default.html
       favicon.ico
@@ -50,7 +51,7 @@ Below is a list of each configuration file, and its function.
                 Hosts on the whitelist will not get blocked; hosts on the grey-
                 list are filtered according to the corresponding PHP file.
     
-    config/
+    /etc/vuurmuur/
       networks/*
                 All internal subnets are defined here
       if-config

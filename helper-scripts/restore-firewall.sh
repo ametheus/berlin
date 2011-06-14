@@ -17,10 +17,11 @@
 #
 
 
-cd /etc/firewall.d
-python rules.py
+# debug "Restarting BIND"
+service bind9 restart
+
+# debug "Enabling IP forwarding"
+echo 1 > /proc/sys/net/ipv4/ip_forward
 
 
-/sbin/iptables-restore < /etc/firewall.d/rules
-mkdir -p /etc/firewall.d/old.rules
-cp /etc/firewall.d/rules "/etc/firewall.d/old.rules/rules-$(date '+%F %T')"
+iptables-restore /etc/vuurmuur/rules
