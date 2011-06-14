@@ -22,7 +22,8 @@ import sys
 
 
 C = vuurmuur.Config()
-C.UI_loop()
+UI = vuurmuur.ConfigUI(C)
+UI.loop()
 
 
 if '--blind-faith' in sys.argv:
