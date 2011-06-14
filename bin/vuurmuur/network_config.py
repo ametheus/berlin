@@ -66,7 +66,7 @@ def open_file( filename, mode ):
         # This is an absolute path, so just open that file.
         return open( filename, mode )
     
-    locations = ['/etc/firewall.d/config/','/etc/vuurmuur/']
+    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
     
     for L in locations:
         fn = L + filename
@@ -77,6 +77,27 @@ def open_file( filename, mode ):
             pass
     
     raise IOError("File not found, or permission denied.")
+
+def list_directory( dir ):
+    """Does the same as os.listdir, only it transparently checks multiple
+    locations."""
+    
+    if dir[0] == '/':
+        try:
+            return os.listdir(dir)
+        except OSError:
+            return []
+    
+    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
+    
+    for L in locations:
+        dn = L + dir
+        try:
+            return os.listdir(dn)
+        except OSError:
+            pass
+    
+    return []
 
 def file_put_contents( filename, data ):
     """Write str({data}) to the file {filename}."""
@@ -176,7 +197,7 @@ class Config:
         """Parses the config directories into a Config class."""
         
         self.Interfaces = []
-        self.ifconfig = parse_file("config/if-config")
+        self.ifconfig = parse_file("if-config")
         
         if network_devices == None:
             #print "   detecting network devices..."
@@ -193,10 +214,7 @@ class Config:
             self.local_services = [ int(p) for p in self.ifconfig['local services'] ]
         
         # Get a list of subnets
-        try:
-            nets = os.listdir('config/networks')
-        except(OSError):
-            nets = []
+        nets = list_directory('networks')
         
         gb = None
         for ifx in s.splitlines():
@@ -231,9 +249,9 @@ class Config:
     
     
     def if_config_file( self ):
-        """Creates a new config/if-config file based on current settings.
+        """Creates a new if-config file based on current settings.
         
-        Returns the contents of the new config/if-config file in a string."""
+        Returns the contents of the new if-config file in a string."""
         
         rv = dict()
         rv['wan address'] = \
@@ -369,9 +387,9 @@ If you blindly trust this script, run the following commands:
 
 sudo mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
 sudo mv /tmp/firewall/interfaces /etc/network/interfaces
-sudo mv /tmp/firewall/if-config /etc/firewall.d/config/if-config
-sudo rm -rf /etc/firewall.d/config/networks
-sudo mv /tmp/firewall/networks /etc/firewall.d/config
+sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config
+sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks
+sudo mv /tmp/firewall/networks /etc/vuurmuur/
 rmdir /tmp/firewall"""
                     sys.stdin.readline()
                 else:
@@ -679,18 +697,14 @@ class Subnet:
     services = [] # TODO: implement
     
     def __init__(self, net):
-        nc = parse_file( 'config/networks/{net}/netconf'.format( net=net ) )
+        nc = parse_file( 'networks/{net}/netconf'.format( net=net ) )
         self.name = ' '.join(nc['friendly name'])
         self.address = net
         self.policies = nc['policies']
         while 'undefined' in self.policies:
             self.policies.remove('undefined')
-        try:
-            hf = os.listdir( 'config/networks/{net}/hosts'.format( net=net ) )
-        except (IOError, OSError):
-            self.hosts = []
-        else:
-            self.hosts = [Host(t,net) for t in hf]
+        hf = list_directory( 'networks/{net}/hosts'.format( net=net ) )
+        self.hosts = [Host(t,net) for t in hf]
         self.interface = ' '.join(nc['interface'])
     
     def net( self ):
@@ -824,7 +838,7 @@ class Host:
     
     def __init__( self, name, net ):
         self.name = name
-        fn = 'config/networks/{net}/hosts/{name}'.format(
+        fn = 'networks/{net}/hosts/{name}'.format(
             net=net, name=name
         )
         hf = parse_file( fn )
