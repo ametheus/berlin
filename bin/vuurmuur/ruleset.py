@@ -17,7 +17,7 @@
 
 """
 
-import subprocess
+import os,subprocess
 
 # Kittenwar server
 KW = '205.196.209.62'
@@ -34,7 +34,29 @@ class Ruleset:
         self.reset()
     
     def reset(self):
-        """Create default empty tables and chains."""
+        """Create empty tables and chains.
+        
+        Create a set of tables containing the default chains, without any addi-
+        tional rules.
+        
+        Examples:
+        
+        >>> R = Ruleset()
+        >>> R.reset()
+        >>> len(R.all_chains.items())
+        2
+        >>> len(R.all_chains['filter'].items())
+        3
+        >>> len(R.all_chains['mangle'].items())
+        Traceback (most recent call last):
+        ...
+        KeyError: 'mangle'
+        >>> len(R.all_chains['filter']['INPUT']['rules'])
+        0
+        >>> R.all_chains['filter']['OUTPUT']['policy']
+        'DROP'
+        
+        """
         
         self.all_chains = dict({})
         for tb in ['nat','filter']:
@@ -51,10 +73,30 @@ class Ruleset:
     def new_chain(self,chain,table='filter',policy='DROP'):
         """Add a new chain.
         
-        Add a new chain {chain} to {table} with default policy {policy}."""
+        Add a new chain {chain} to {table} with default policy {policy}.
+        
+        Examples:
+        
+        >>> R = Ruleset()
+        >>> R.new_chain('godfather')
+        >>> R.new_chain('godfather',table='robert deniro')
+        Traceback (most recent call last):
+        ...
+        Exception: Invalid table robert deniro. Keys: ...
+        >>> len(R.all_chains['filter'].items())
+        4
+        >>> len(R.all_chains['filter']['godfather']['rules'])
+        0
+        >>> len(R.all_chains['filter']['part II']['rules'])
+        Traceback (most recent call last):
+        ...
+        KeyError: 'part II'
+        
+        """
         
         if not table in self.all_chains:
-            raise Exception("Invalid table {0}. Keys: {1}".format(table,all_chains.keys()))
+            raise Exception( "Invalid table {0}. Keys: {1}".format(
+                    table,self.all_chains.keys()) )
         if not chain in self.all_chains[table]:
             self.all_chains[table][chain] = dict({
                 'policy': policy,
@@ -66,7 +108,30 @@ class Ruleset:
     def append_chain( self, chain, rule, table='filter', comments=False ):
         """Append a rule to a chain.
         
-        Append {rule} to {chain} in {table}."""
+        Append {rule} to {chain} in {table}.
+        
+        Examples:
+        
+        >>> R = Ruleset()
+        >>> R.new_chain('godfather')
+        >>> len(R.all_chains['filter'].items())
+        4
+        >>> len(R.all_chains['filter']['godfather']['rules'])
+        0
+        >>> R.append_chain( 'godfather', 'part II' )
+        >>> R.append_chain( 'godfather', 'part III' )
+        >>> R.append_chain( 'matrix', 'part II' )
+        Traceback (most recent call last):
+        ...
+        Exception: Chain 'matrix' does not yet exist. ...
+        >>> 'part II' in R.all_chains['filter']['godfather']['rules']
+        True
+        >>> 'part III' in R.all_chains['filter']['godfather']['rules']
+        True
+        >>> 'part IV' in R.all_chains['filter']['godfather']['rules']
+        False
+        
+        """
         
         if not chain in self.all_chains[table]:
             raise Exception("Chain '{0}' does not yet exist. Try creating it explicitly.")
@@ -78,12 +143,25 @@ class Ruleset:
     
     @staticmethod
     def IP_addresses_from_files( filenames ):
-        """Return all valid IPv4 addresses from every file in {filenames}"""
+        """Return all valid IPv4 addresses from every file in {filenames}
+        
+        Examples:
+        
+        >>> f = open('/tmp/doctest_IP_addresses_from_files','w')
+        >>> f.write('127.0.0.1\\n\\n')
+        >>> f.close()
+        
+        >>> Ruleset.IP_addresses_from_files( [] )
+        []
+        >>> Ruleset.IP_addresses_from_files( ['/tmp/doctest_IP_addresses_from_files'] )
+        ['127.0.0.1']
+        
+        """
         
         locations = ['/etc/vuurmuur/','/etc/firewall.d/config/','']
         files = sum([[L+F for F in filenames] for L in locations],[])
         f = subprocess.Popen(
-                ['cat'] + files,
+                ['cat', '/dev/null'] + files,
                 stdout = subprocess.PIPE, stderr = open('/dev/null','w')
         )
         gr = subprocess.Popen(
@@ -100,7 +178,23 @@ class Ruleset:
         
         Create a separate filter chain called {name}. As soon as a tcp packet is
         detected to an IP address in any one of the files in {files}, the {action}
-        is performed."""
+        is performed.
+        
+        >>> R = Ruleset()
+        
+        >>> f = open('/tmp/doctest_create_filter','w')
+        >>> f.write('127.0.0.1\\n10.0.0.138\\n')
+        >>> f.close()
+        
+        >>> R.create_filter( 'doctest', ['/tmp/doctest_create_filter'] )
+        >>> R.create_filter( 'another_doctest', [], table='filter' )
+        
+        >>> len(R.all_chains['nat']['doctest']['rules'])
+        2
+        >>> len(R.all_chains['filter']['another_doctest']['rules'])
+        0
+        
+        """
         
         addresses = Ruleset.IP_addresses_from_files( files )
         self.new_chain( name, table=table, policy='RETURN' )
@@ -118,7 +212,29 @@ class Ruleset:
     
     
     def output_chains(self, filename):
-        """Export all chains in iptables-restore format to {filename}."""
+        """Export all chains in iptables-restore format to {filename}.
+        
+        Examples:
+        
+        >>> R = Ruleset()
+        >>> R.output_chains( '/tmp/doctest_output_chains' )
+        
+        >>> f = open( '/tmp/doctest_output_chains', 'r' )
+        >>> print f.read()
+        *nat
+        :PREROUTING ACCEPT [0:0]
+        :POSTROUTING ACCEPT [0:0]
+        :OUTPUT ACCEPT [0:0]
+        COMMIT
+        *filter
+        :INPUT DROP [0:0]
+        :FORWARD DROP [0:0]
+        :OUTPUT DROP [0:0]
+        COMMIT
+        <BLANKLINE>
+        >>> f.close()
+        
+        """
         
         counters = dict({
             'filter': ['INPUT','FORWARD','OUTPUT'],
@@ -158,3 +274,12 @@ class Ruleset:
         f.close()
     
     
+
+
+if __name__ == '__main__':
+    import os,doctest
+    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    
+    #os.unlink('/tmp/doctest_IP_addresses_from_files')
+    #os.unlink('/tmp/doctest_create_filter')
+    #os.unlink('/tmp/doctest_output_chains')
