@@ -117,16 +117,15 @@ class Ruleset:
     
     
     
-    def output_chains(self):
-        """Export all chains in iptables-restore format."""
+    def output_chains(self, filename):
+        """Export all chains in iptables-restore format to {filename}."""
         
         counters = dict({
             'filter': ['INPUT','FORWARD','OUTPUT'],
             'nat': ['PREROUTING','POSTROUTING','OUTPUT']
         })
         
-        fn = '/etc/vuurmuur/rules' if getuser() == 'root' else '/tmp/rules'
-        f = open(fn,'w')
+        f = open(filename,'w')
         
         for tb in ['nat','filter']:
             table = self.all_chains[tb]
