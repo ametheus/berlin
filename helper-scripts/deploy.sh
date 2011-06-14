@@ -68,6 +68,10 @@ rm -f /etc/apache2/sites-enabled/000-default
 # Enable the virtualhosts
 ln -s ../sites-available/adblock            /etc/apache2/sites-enabled/000-adblock
 
+# Create a new log file for the adblock CGI
+touch /var/log/adblock.log
+chown www-data:www-data /var/log/adblock.log
+
 # Enable required modules
 a2enmod rewrite
 a2enmod proxy
