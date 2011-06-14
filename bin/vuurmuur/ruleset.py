@@ -134,7 +134,7 @@ class Ruleset:
         """
         
         if not chain in self.all_chains[table]:
-            raise Exception("Chain '{0}' does not yet exist. Try creating it explicitly.")
+            raise Exception("Chain '{0}' does not yet exist. Try creating it explicitly.".format(chain))
         
         self.all_chains[table][chain]['rules'].append(rule)
         
