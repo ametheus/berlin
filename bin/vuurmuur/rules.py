@@ -19,6 +19,7 @@
 
 import network_config
 from getpass import getuser
+from output import debug
 
 import os,sys
 import shlex, subprocess
@@ -26,23 +27,6 @@ import shlex, subprocess
 # Kittenwar server
 KW = '205.196.209.62'
 
-
-# Debug level
-#  2 = Nothing, not even errors
-#  1 = Just errors
-#  0 = Helpful status messages
-# -1 = Chatty
-# -2 = Blabbermouth
-debuglevel = 1
-
-
-def debug( importance, str, newline=True ):
-    """Send {str} to stdout. Maybe.
-    
-    If {importance} is high enough, send {str} to stdout."""
-    
-    if importance >= debuglevel:
-        sys.stdout.write( "{0}{1}".format( str, "\n" if newline else "" ) )
 
 all_chains = dict({})
 
@@ -226,11 +210,6 @@ def output_chains():
 
 
 if __name__ == '__main__':
-    
-    if '-d' in sys.argv:
-        x = sys.argv.index('-d')+1
-        if len(sys.argv) > x:
-            debuglevel = int(sys.argv[x])
     
     if getuser() == 'root':
         debug( -1, "Restarting BIND" )
