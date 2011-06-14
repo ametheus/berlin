@@ -22,7 +22,6 @@ KW = '205.196.209.62'
 
 from ruleset import Ruleset
 from output import debug
-from getpass import getuser
 
 class Vuurmuur(Ruleset):
     
@@ -304,8 +303,6 @@ class Vuurmuur(Ruleset):
                     self.adblock( N )
                 elif 'malware' in N.policies:
                     self.malware( N )
-        
-        self.output_chains( '/etc/vuurmuur/rules' if getuser() == 'root' else '/tmp/rules' )
 
 
 if __name__ == '__main__':
