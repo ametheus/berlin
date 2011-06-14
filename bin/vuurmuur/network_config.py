@@ -59,9 +59,28 @@ def getkey():
         )
     )
 
+def open_file( filename, mode ):
+    """Does the same as open(), only transparently checks multiple locations."""
+    
+    if filename[0] == '/':
+        # This is an absolute path, so just open that file.
+        return open( filename, mode )
+    
+    locations = ['/etc/firewall.d/config/','/etc/vuurmuur/']
+    
+    for L in locations:
+        fn = L + filename
+        try:
+            f = open(fn,mode)
+            return f
+        except IOError:
+            pass
+    
+    raise IOError("File not found, or permission denied.")
+
 def file_put_contents( filename, data ):
     """Write str({data}) to the file {filename}."""
-    f = open( filename, 'w' )
+    f = open_file( filename, 'w' )
     f.write( data )
     f.close()
 
@@ -106,7 +125,7 @@ def parse_file( filename ):
     
     rv = defaultdict(lambda:['undefined'])
     try:
-        f = open( filename, 'r' )
+        f = open_file( filename, 'r' )
     except(OSError, IOError):
         pass
     else:

@@ -17,10 +17,10 @@
 #
 
 
-cd /etc/firewall.d/bin/vuurmuur
+cd /usr/share/vuurmuur/bin/vuurmuur
 python rules.py
 
 
-/sbin/iptables-restore < /etc/firewall.d/rules
-mkdir -p /etc/firewall.d/old.rules
-cp /etc/firewall.d/rules "/etc/firewall.d/old.rules/rules-$(date '+%F %T')"
+/sbin/iptables-restore < /etc/vuurmuur/rules
+mkdir -p /etc/vuurmuur/old.rules
+cp /etc/vuurmuur/rules "/etc/vuurmuur/old.rules/rules-$(date '+%F %T')"

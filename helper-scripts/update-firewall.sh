@@ -17,7 +17,7 @@
 #
 
 
-cd /etc/firewall.d
+cd /usr/share/vuurmuur
 
 GITOUT="$(git pull origin master 2>/dev/null)"
 

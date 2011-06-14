@@ -24,4 +24,4 @@ service bind9 restart
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
 
-iptables-restore /etc/firewall.d/rules
+iptables-restore /etc/vuurmuur/rules

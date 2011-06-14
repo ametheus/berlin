@@ -24,6 +24,8 @@ then
     echo "If you can read this, it means the 'exit' command doesn't work the way I thought it does."
 fi
 
+# Change into vuurmuur's root directory
+cd $(basename $0)/..
 
 # Make sure required packages are installed
 apt-get install -qq \
@@ -33,19 +35,31 @@ apt-get install -qq \
     mysql-server \
     git-core
 
-# Link the default (hard-coded) config dir
-ln -s "$(pwd)" /etc/firewall.d 2>/dev/null
+# Remove links from previous versions
+rm -f /etc/firewall.d /usr/share/vuurmuur
+rm -f /sbin/firewall /sbin/restore-firewall
+
+# Link this directory in a default location
+ln -s $(pwd) /usr/share/vuurmuur
+
+# Create the config directory, and link the initial content
+mkdir -p /etc/vuurmuur
+rm -f /etc/vuurmuur/{apache,ad-hosts,malware-hosts,smtp-hosts}
+ln -s /usr/share/vuurmuur/apache                /etc/vuurmuur/apache
+ln -s /usr/share/vuurmuur/config/ad-hosts       /etc/vuurmuur/ad-hosts
+ln -s /usr/share/vuurmuur/config/malware-hosts  /etc/vuurmuur/malware-hosts
+ln -s /usr/share/vuurmuur/config/smtp-hosts     /etc/vuurmuur/smtp-hosts
 
 # Link the binaries
-ln -s /etc/firewall.d/helper-scripts/recreate-firewall.sh   /sbin/firewall
-ln -s /etc/firewall.d/helper-scripts/restore-firewall.sh    /sbin/restore-firewall
+ln -s /usr/share/vuurmuur/helper-scripts/recreate-firewall.sh   /sbin/firewall
+ln -s /usr/share/vuurmuur/helper-scripts/restore-firewall.sh    /sbin/restore-firewall
 
 
 
 
 # Enable the apache configuration
 # Link adblock.conf as an available site
-ln -s /etc/firewall.d/apache/adblock.conf   /etc/apache2/sites-available/adblock
+ln -s /etc/vuurmuur/apache/adblock.conf   /etc/apache2/sites-available/adblock
 
 # Remove the default virtualhost.
 # If this causes serious problems, there was something wrong with the config to begin with.
@@ -66,7 +80,7 @@ service apache2 restart
 
 
 # Generate configuration files
-cd /etc/firewall.d/bin
+cd bin
 ./generate-config.py --blind-faith
 
 
@@ -74,9 +88,9 @@ cd /etc/firewall.d/bin
 # Yes, I blindly trust the deploy script.
 mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
 mv /tmp/firewall/interfaces /etc/network/interfaces
-mv /tmp/firewall/if-config /etc/firewall.d/config/if-config
-rm -rf /etc/firewall.d/config/networks
-mv /tmp/firewall/networks /etc/firewall.d/config
+mv /tmp/firewall/if-config /etc/vuurmuur/if-config
+rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks
+mv /tmp/firewall/networks /etc/vuurmuur
 rmdir /tmp/firewall
 
 
