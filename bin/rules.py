@@ -17,10 +17,8 @@
 
 """
 
-from network_config import Config
 from getpass import getuser
-from output import debug
-from vuurmuur import Vuurmuur
+from vuurmuur import Config, debug, Vuurmuur
 
 if getuser() == 'root':
     debug( -1, "Restarting BIND" )

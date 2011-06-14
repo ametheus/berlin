@@ -17,7 +17,7 @@
 #
 
 
-cd /usr/share/vuurmuur/bin/vuurmuur
+cd /usr/share/vuurmuur/bin
 python rules.py
 
 

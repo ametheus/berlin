@@ -18,3 +18,5 @@
 """
 
 from network_config import Config
+from vuurmuur import Vuurmuur
+from output import debug
