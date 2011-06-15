@@ -235,13 +235,12 @@ class Config:
         
         Returns the contents of the /etc/network/interfaces file in a string."""
         
-        s = """# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
-
-# The loopback network interface
-auto lo
-iface lo inet loopback
-"""
+        s = "# This file describes the network interfaces available on your system\n" + \
+            "# and how to activate them. For more information, see interfaces(5).\n" + \
+            "\n" + \
+            "# The loopback network interface\n" + \
+            "auto lo\n" + \
+            "iface lo inet loopback\n\n"
         return s + "\n\n".join(
             [ t.interfaces_file() for t in self.Interfaces ]
         )
@@ -433,24 +432,24 @@ class Iface:
             return ""
         if self.wan_interface:
             if self.dhcp:
-                return """auto {name}
-iface {name} inet dhcp
-name External network interface
-
-""".format( name = self.name )
-            return """auto {name}
-iface {name} inet static
-name External network interface
-address   {addr}
-gateway   {pref}.1
-network   {pref}.0
-netmask   255.255.255.0
-broadcast {pref}.255
-
-""".format(
-                name = self.name,
-                addr = self.address,
-                pref = '.'.join(self.address.split('.')[0:3])
+                s  = "auto {name}\n"
+                s += "iface {name} inet dhcp\n"
+                s += "name External network interface\n"
+                s += "\n"
+                return s.format( name = self.name )
+            s  = "auto {name}\n"
+            s += "iface {name} inet static\n"
+            s += "name External network interface\n"
+            s += "address   {addr}\n"
+            s += "gateway   {pref}.1\n"
+            s += "network   {pref}.0\n"
+            s += "netmask   255.255.255.0\n"
+            s += "broadcast {pref}.255\n"
+            s += "\n"
+            return s.format(
+                    name = self.name,
+                    addr = self.address,
+                    pref = '.'.join(self.address.split('.')[0:3])
             )
         else:
             rv = "\n\n# Interface {name}\n\n".format(name=self.name)
@@ -594,19 +593,18 @@ class Subnet:
         Return an entry for /etc/network/interfaces as a string, using {iface}
         as the network interface name."""
         
-        return """auto {iface}
-iface {iface} inet static
-name {desc}
-address 192.168.{net}.1
-network 192.168.{net}.0
-netmask 255.255.255.0
-broadcast 192.168.{net}.255
-
-
-""".format(
-            iface = iface,
-            desc = self.name,
-            net = self.address
+        s  = "auto {iface}\n"
+        s += "iface {iface} inet static\n"
+        s += "name {desc}\n"
+        s += "address 192.168.{net}.1\n"
+        s += "network 192.168.{net}.0\n"
+        s += "netmask 255.255.255.0\n"
+        s += "broadcast 192.168.{net}.255\n"
+        s += "\n"
+        return s.format(
+                iface = iface,
+                desc = self.name,
+                net = self.address
         )
     
     

@@ -175,15 +175,15 @@ class ConfigUI:
                         self.C.local_services.append(port)
                 elif c[1] == (27, 91, 50, 52): # F12
                     self.C.Export()
-                    print """Export complete.
-If you blindly trust this script, run the following commands:
-
-sudo mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
-sudo mv /tmp/firewall/interfaces /etc/network/interfaces
-sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config
-sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks
-sudo mv /tmp/firewall/networks /etc/vuurmuur/
-rmdir /tmp/firewall"""
+                    print "Export complete."
+                    print "If you blindly trust this script, run the following commands:"
+                    print ""
+                    print "sudo mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf"
+                    print "sudo mv /tmp/firewall/interfaces /etc/network/interfaces"
+                    print "sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config"
+                    print "sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks"
+                    print "sudo mv /tmp/firewall/networks /etc/vuurmuur/"
+                    print "rmdir /tmp/firewall"
                     sys.stdin.readline()
                 else:
                     continue
