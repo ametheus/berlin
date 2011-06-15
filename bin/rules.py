@@ -19,6 +19,7 @@
 
 from getpass import getuser
 from vuurmuur import Config, debug, Vuurmuur
+import subprocess
 
 if getuser() == 'root':
     debug( -1, "Restarting BIND" )
