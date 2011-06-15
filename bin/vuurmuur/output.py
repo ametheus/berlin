@@ -17,15 +17,27 @@
 
 """
 
-import vuurmuur
 import sys
 
+# Debug level
+#  2 = Nothing, not even errors
+#  1 = Just errors
+#  0 = Helpful status messages
+# -1 = Chatty
+# -2 = Blabbermouth
+debuglevel = 1
 
-C = vuurmuur.Config()
-UI = vuurmuur.ConfigUI(C)
-UI.loop()
 
+def debug( importance, str, newline=True ):
+    """Send {str} to stdout. Maybe.
+    
+    If {importance} is high enough, send {str} to stdout."""
+    
+    if importance >= debuglevel:
+        sys.stdout.write( "{0}{1}".format( str, "\n" if newline else "" ) )
 
-if '--blind-faith' in sys.argv:
-    C.Export()
+if '--silence' in sys.argv:
+    x = sys.argv.index('--silence')+1
+    if len(sys.argv) > x:
+        debuglevel = int(sys.argv[x])
 

@@ -22,43 +22,6 @@ import subprocess
 from collections import *
 from getpass import getuser
 
-def getkey():
-    """Capture a single key press.
-    
-    Capture a key press event, and return the appropriate data in a tuple
-    (c,(x,x,x,x)), where c denotes the character value of the key pressed,
-    while the (x,x,x,x) tuple contains the numeric value of the 4 original
-    bytes. This can be useful if the key pressed has no visible form.
-    
-    Examples:
-    
-    Pressing <c>     results in  ('c',(99,0,0,0))
-    Pressing <enter> results in  ('\n',(10,0,0,0))
-    Pressing <up>    results in  ('', (27,91,65,0))
-    Pressing <F12>   results in  ('', (27, 91, 50, 52))"""
-    
-    fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    new = termios.tcgetattr(fd)
-    new[3] = new[3] & ~termios.ICANON & ~termios.ECHO
-    new[6][termios.VMIN] = 1
-    new[6][termios.VTIME] = 0
-    termios.tcsetattr(fd, termios.TCSANOW, new)
-    c = None
-    try:
-            c = os.read(fd,4)
-    finally:
-            termios.tcsetattr(fd, termios.TCSAFLUSH, old)
-    return (
-        c,
-        (
-            ord(c[0]),
-            ord(c[1]) if len(c) > 1 else 0,
-            ord(c[2]) if len(c) > 2 else 0,
-            ord(c[3]) if len(c) > 3 else 0
-        )
-    )
-
 def open_file( filename, mode ):
     """Does the same as open(), only transparently checks multiple locations."""
     
@@ -180,15 +143,15 @@ def unparse_file( data ):
             [ (t[0], ' '.join(t[1]) ) for t in data.items() ]]
     ) + "\n\n"
 
+def null_callback(s,o):
+    """An empty callback function for a Display() method."""
+    print s
 
 class Config:
     """Complete network configuration for vuurmuur."""
     
     Interfaces = None
     ifconfig = None
-    
-    tion = ( None, None, None )
-    drawn = 0
     
     local_services = [ 22, 80, 443, 19360 ] # TODO: implement
     network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
@@ -272,17 +235,15 @@ class Config:
         
         Returns the contents of the /etc/network/interfaces file in a string."""
         
-        s = """# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
-
-# The loopback network interface
-auto lo
-iface lo inet loopback
-"""
+        s = "# This file describes the network interfaces available on your system\n" + \
+            "# and how to activate them. For more information, see interfaces(5).\n" + \
+            "\n" + \
+            "# The loopback network interface\n" + \
+            "auto lo\n" + \
+            "iface lo inet loopback\n\n"
         return s + "\n\n".join(
             [ t.interfaces_file() for t in self.Interfaces ]
         )
-    
     
     def dhcp_conf( self ):
         """Creates a new /etc/dhcp3/dhcpd.conf file.
@@ -304,180 +265,6 @@ iface lo inet loopback
         return rv + "\t\n\t\n}\n\n"
     
     
-    
-    
-    def arrow_key( self, hm ):
-        """Handle the arrow key pess events."""
-        
-        if self.tion[1] == None:
-            i = self.Interfaces.index( self.tion[0] ) + hm
-            i = i if i >= 0 else 0
-            i = i if i < len(self.Interfaces) else len(self.Interfaces) - 1
-            self.tion = ( self.Interfaces[i], None, None )
-        elif self.tion[2] == None:
-            sli = self.tion[0]
-            i = sli.subnets.index( self.tion[1] ) + hm
-            i = i if i >= 0 else 0
-            i = i if i < len(sli.subnets) else len(sli.subnets) - 1
-            self.tion = ( sli, sli.subnets[i], None )
-        else: 
-            sn = self.tion[1]
-            i = sn.hosts.index( self.tion[2] ) + hm
-            i = i if i >= 0 else 0
-            i = i if i < len(sn.hosts) else len(sn.hosts) - 1
-            self.tion = ( self.tion[0], sn, sn.hosts[i] )
-    
-    def UI_loop( self ):
-        """Run the UI.
-        
-        Display a simple text-based UI, and perform actions according to user
-        interaction."""
-        
-        self.Display( UI_options=True )
-        quit = False
-        while not quit:
-            c = getkey()
-            
-            if c[1] == (27,91,65,0): # Up arrow
-                self.arrow_key( -1 )
-            elif c[1] == (27,91,66,0): # Down arrow
-                self.arrow_key( 1 )
-            
-            elif self.tion[1] == None:
-                
-                # A network interface is selected, but nothing else.
-                
-                if c[1] == (27,0,0,0): # Escape
-                    quit = True
-                elif c[1] == (10,0,0,0): # Enter
-                    if len(self.tion[0].subnets) > 0:
-                        self.tion = ( self.tion[0], self.tion[0].subnets[0], None )
-                elif c[0] == '+':
-                    self.tion[0].enabled = True
-                elif c[0] == '-':
-                    self.tion[0].enabled = False
-                elif c[0] == 'w':
-                    self.tion[0].wan_interface = not self.tion[0].wan_interface
-                    if not self.tion[0].wan_interface:
-                        self.tion[0].dhcp = False
-                    self.tion[0].enabled = True
-                elif c[0] == 'd':
-                    if self.tion[0].wan_interface:
-                        self.tion[0].dhcp = not self.tion[0].dhcp
-                elif c[0] == 'a':
-                    print "Enter subnet identifier: ",
-                    sn = str(int(sys.stdin.readline().strip()))
-                    SN = Subnet(sn)
-                    self.tion[0].subnets.append(SN)
-                    self.tion = ( self.tion[0], SN, None )
-                elif c[0] == 'r':
-                    print "Enter WAN address: ",
-                    self.tion[0].wan_address = sys.stdin.readline().strip()
-                elif c[0] == 's':
-                    print "Enter port number: ",
-                    port = int(sys.stdin.readline().strip())
-                    if port in self.local_services:
-                        self.local_services.remove(port)
-                    else:
-                        self.local_services.append(port)
-                elif c[1] == (27, 91, 50, 52): # F12
-                    self.Export()
-                    print """Export complete.
-If you blindly trust this script, run the following commands:
-
-sudo mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
-sudo mv /tmp/firewall/interfaces /etc/network/interfaces
-sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config
-sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks
-sudo mv /tmp/firewall/networks /etc/vuurmuur/
-rmdir /tmp/firewall"""
-                    sys.stdin.readline()
-                else:
-                    continue
-            
-            elif self.tion[2] == None:
-                
-                # An interface and a subnet are selected
-                
-                if c[1] == (27,0,0,0): # Escape
-                    self.tion = ( self.tion[0], None, None )
-                elif c[1] == (10,0,0,0): # Enter
-                    if len(self.tion[1].hosts) > 0:
-                        self.tion[1].showhosts = True
-                        self.tion = ( self.tion[0], self.tion[1], self.tion[1].hosts[0] )
-                elif c[0] == 'p':
-                    self.tion[1].public = not self.tion[1].public
-                elif c[0] == 'n':
-                    print "Enter new prefix: ",
-                    self.tion[1].address = '192.168.{net}.0'.format(
-                        net = sys.stdin.readline().strip()
-                    )
-                elif c[0] == '+':
-                    print " Enter hostname: ",
-                    host = sys.stdin.readline().strip()
-                    print "Enter MAC address: ",
-                    mac = sys.stdin.readline().strip()
-                    print "Enter IP extension: ",
-                    ip = int(sys.stdin.readline().strip())
-                    
-                    H = Host( host, self.tion[1] )
-                    H.addr = ip
-                    H.mac = mac
-                    self.tion[1].hosts.append(H);
-                    self.tion[1].showhosts = True
-                    self.tion = ( self.tion[0], self.tion[1], H )
-                elif c[0] == 'c':
-                    print "Enter description: ",
-                    self.tion[1].name = sys.stdin.readline().strip()
-                elif c[0] == '1':
-                    self.tion[1].toggle_policy( 'malware' )
-                elif c[0] == '2':
-                    self.tion[1].toggle_policy( 'adblock' )
-                elif c[0] == '3':
-                    self.tion[1].toggle_policy( 'kittenwar' )
-                elif c[0] == '4':
-                    self.tion[1].toggle_policy( 'roberts' )
-                else:
-                    continue
-            
-            
-            else:
-                
-                # An interface, subnet, and host are selected
-                
-                if c[1] == (27,0,0,0): # Escape
-                    self.tion[1].showhosts = False
-                    self.tion = ( self.tion[0], self.tion[1], None )
-                else:
-                    continue
-            if not quit:
-                self.Display( UI_options=True )
-    
-    def UI_optns( self ):
-        """Show the keyboard shortcuts
-        
-        Show the keyboard shortcuts relevant to the current selection."""
-        
-        print "\n"*( 30 - self.c if self.c < 30 else 1 )
-        if self.tion[1] == None:
-            print " [+]   Enable interface    [-]   Disable interface   [w]   Toggle WAN interface"
-            print " [a]   Add subnet          [d]   Toggle DHCP         [r]   Edit WAN address"
-            print " [s]   Add/remove local service"
-            print " [F12] Write config                                  [Esc] Exit"
-        elif self.tion[2] == None:
-            print " [p]   Toggle private      [n]   Set network prefix  [c]   Edit friendly name"
-            print " [1]   Toggle 'malware'    [2]   Toggle 'adblock'    [3]   Toggle 'kittenwar'"
-            print " [+]   Add host"
-            print "                                                     [Esc] Back"
-        else:
-            print " [c]   Edit IP address     [m]   Edit MAC address   "
-            print " [n]   Edit hostname       [d]   Delete host        "
-            print ""
-            print "                                                     [Esc] Back"
-    
-    
-    
-    
     @staticmethod
     def sort_iface( a, b ):
         """A sorting function for Iface's"""
@@ -493,49 +280,51 @@ rmdir /tmp/firewall"""
         return 0
     
     
-    
-    
-    c = 0
-    def display_line( self, str, obj ):
-        """Display the jagged line and the word "INTERNET." """
+    def Display( self, cb=null_callback ):
+        """Print a graphic representation of the network topology to stdout.
         
-        curs = -1
-        if obj == self.tion[0] and self.tion[0] != None and self.drawn < 1:
-            curs = 0
-            self.drawn = 1
-        elif obj == self.tion[1] and self.tion[1] != None and self.drawn < 2:
-            curs = 1
-            self.drawn = 2
-        elif obj == self.tion[2] and self.tion[2] != None and self.drawn < 3:
-            curs = 2
-            self.drawn = 3
+        Examples:
         
-        print '  {intc} {intsep}{string:<65s} {cursor:>3s}'.format(
-            intc = ('INTERNET'[self.c] if self.c < 8 else ' '),
-            intsep = ( str[0:2] if str[0:2] != '  ' else
-                (' \\' if self.c % 2 == 0 else ' /')),
-            string = str[2:],
-            cursor = ('<','<<','<<<')[curs] if curs >= 0 else ''
-        )
-        self.c += 1
-    
-    def Display( self, UI_options=False ):
-        """Print a graphic representation of the network topology to stdout."""
+        >>> C = Config()
+        >>> C.Interfaces = [Iface()]
+        >>> C.local_services = [1,2,3]
+        >>> print '.', C.Display()
+        .      \\
+             /   Open ports: [1, 2, 3]
+             \\
+          I  /  --    ##    --   () 
+          N  \\            
+          T  /
+          E  \\
+        None
         
-        self.c = 0
-        self.drawn = 0
-        print '\n     /'
+        """
+        
+        cnt = [0]
+        def pr(s,o):
+            """Display the jagged line and the word 'INTERNET.' """
+            
+            S = '  {intc} {intsep}{string}'.format(
+                    intc = ('   INTERNET'[cnt[0]] if cnt[0] < 11 else ' '),
+                    intsep = ( s[0:2] if s[0:2].strip() != '' else
+                        (' \\' if cnt[0] % 2 == 0 else ' /')),
+                    string = s[2:]
+            )
+            cb(S,o)
+            cnt[0] = cnt[0] + 1
+        
+        pr('',self)
         
         self.Interfaces.sort( Config.sort_iface )
         self.local_services.sort()
         
-        print "     \\  Open ports: {op}".format(op=str(self.local_services))
-        print '     /'
+        pr("     Open ports: {0}".format(str(self.local_services)),self)
+        pr('',self)
         for i in self.Interfaces:
-            i.Display( lambda s, o: self.display_line(s, o) )
-        print ('     \\' if self.c % 2 == 0 else '     /')
-        if UI_options:
-            self.UI_optns()
+            i.Display( pr )
+        pr('',self)
+        pr('',self)
+        
 
 
 
@@ -618,6 +407,16 @@ class Iface:
             n.Display( prn )
         prn('', self)
     
+    def new_subnet( self, identifier ):
+        try:
+            sn = str(int(identifier))
+        except ValueError:
+            print "Error: Network identifier must be an integer between 1 and 255."
+            return None
+        SN = Subnet(sn)
+        self.subnets.append(SN)
+        return SN
+    
     def Export( self, dir ):
         """For each subnet, write config files to disk."""
         
@@ -633,24 +432,24 @@ class Iface:
             return ""
         if self.wan_interface:
             if self.dhcp:
-                return """auto {name}
-iface {name} inet dhcp
-name External network interface
-
-""".format( name = self.name )
-            return """auto {name}
-iface {name} inet static
-name External network interface
-address   {addr}
-gateway   {pref}.1
-network   {pref}.0
-netmask   255.255.255.0
-broadcast {pref}.255
-
-""".format(
-                name = self.name,
-                addr = self.address,
-                pref = '.'.join(self.address.split('.')[0:3])
+                s  = "auto {name}\n"
+                s += "iface {name} inet dhcp\n"
+                s += "name External network interface\n"
+                s += "\n"
+                return s.format( name = self.name )
+            s  = "auto {name}\n"
+            s += "iface {name} inet static\n"
+            s += "name External network interface\n"
+            s += "address   {addr}\n"
+            s += "gateway   {pref}.1\n"
+            s += "network   {pref}.0\n"
+            s += "netmask   255.255.255.0\n"
+            s += "broadcast {pref}.255\n"
+            s += "\n"
+            return s.format(
+                    name = self.name,
+                    addr = self.address,
+                    pref = '.'.join(self.address.split('.')[0:3])
             )
         else:
             rv = "\n\n# Interface {name}\n\n".format(name=self.name)
@@ -752,6 +551,20 @@ class Subnet:
         else:
             self.policies.append( policy )
             return True
+    
+    def new_host( self, hostname, mac, ip ):
+        try:
+            ip = int(ip)
+        except ValueError:
+            return None
+        
+        H = Host( hostname, self )
+        H.addr = ip
+        H.mac = mac
+        self.hosts.append(H);
+        self.showhosts = True
+        
+        return H
 
     def Display( self, cb ):
         """Create a graphic representation.
@@ -780,19 +593,18 @@ class Subnet:
         Return an entry for /etc/network/interfaces as a string, using {iface}
         as the network interface name."""
         
-        return """auto {iface}
-iface {iface} inet static
-name {desc}
-address 192.168.{net}.1
-network 192.168.{net}.0
-netmask 255.255.255.0
-broadcast 192.168.{net}.255
-
-
-""".format(
-            iface = iface,
-            desc = self.name,
-            net = self.address
+        s  = "auto {iface}\n"
+        s += "iface {iface} inet static\n"
+        s += "name {desc}\n"
+        s += "address 192.168.{net}.1\n"
+        s += "network 192.168.{net}.0\n"
+        s += "netmask 255.255.255.0\n"
+        s += "broadcast 192.168.{net}.255\n"
+        s += "\n"
+        return s.format(
+                iface = iface,
+                desc = self.name,
+                net = self.address
         )
     
     
@@ -897,4 +709,4 @@ class Host:
 if __name__ == '__main__':
     
     import doctest
-    doctest.testmod()
+    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
