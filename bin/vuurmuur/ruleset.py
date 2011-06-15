@@ -252,7 +252,7 @@ class Ruleset:
             for ch,chain in table.items():
                 if ch in counters[tb]: continue
                 f.write('-N {0}\n'.format(ch))
-                if chain['policy'] != '-':
+                if chain['policy'] not in ['-','RETURN']:
                     f.write('-P {0} {1}\n'.format(ch,chain['policy']))
             
             # Write all the rules for the user-defined chains
