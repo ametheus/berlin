@@ -153,9 +153,6 @@ class Config:
     Interfaces = None
     ifconfig = None
     
-    tion = ( None, None, None )
-    drawn = 0
-    
     local_services = [ 22, 80, 443, 19360 ] # TODO: implement
     network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
     
@@ -249,7 +246,6 @@ iface lo inet loopback
             [ t.interfaces_file() for t in self.Interfaces ]
         )
     
-    
     def dhcp_conf( self ):
         """Creates a new /etc/dhcp3/dhcpd.conf file.
         
@@ -270,11 +266,6 @@ iface lo inet loopback
         return rv + "\t\n\t\n}\n\n"
     
     
-    
-    
-    
-    
-    
     @staticmethod
     def sort_iface( a, b ):
         """A sorting function for Iface's"""
@@ -289,32 +280,6 @@ iface lo inet loopback
             return 1
         return 0
     
-    
-    
-    
-    c = 0
-    def display_line( self, str, obj ):
-        """Display the jagged line and the word "INTERNET." """
-        
-        curs = -1
-        if obj == self.tion[0] and self.tion[0] != None and self.drawn < 1:
-            curs = 0
-            self.drawn = 1
-        elif obj == self.tion[1] and self.tion[1] != None and self.drawn < 2:
-            curs = 1
-            self.drawn = 2
-        elif obj == self.tion[2] and self.tion[2] != None and self.drawn < 3:
-            curs = 2
-            self.drawn = 3
-        
-        print '  {intc} {intsep}{string:<65s} {cursor:>3s}'.format(
-            intc = ('INTERNET'[self.c] if self.c < 8 else ' '),
-            intsep = ( str[0:2] if str[0:2] != '  ' else
-                (' \\' if self.c % 2 == 0 else ' /')),
-            string = str[2:],
-            cursor = ('<','<<','<<<')[curs] if curs >= 0 else ''
-        )
-        self.c += 1
     
     def Display( self, cb=null_callback ):
         """Print a graphic representation of the network topology to stdout.
@@ -442,6 +407,16 @@ class Iface:
         for n in self.subnets:
             n.Display( prn )
         prn('', self)
+    
+    def new_subnet( self, identifier ):
+        try:
+            sn = str(int(identifier))
+        except ValueError:
+            print "Error: Network identifier must be an integer between 1 and 255."
+            return None
+        SN = Subnet(sn)
+        self.subnets.append(SN)
+        return SN
     
     def Export( self, dir ):
         """For each subnet, write config files to disk."""
@@ -577,6 +552,20 @@ class Subnet:
         else:
             self.policies.append( policy )
             return True
+    
+    def new_host( self, hostname, mac, ip ):
+        try:
+            ip = int(ip)
+        except ValueError:
+            return None
+        
+        H = Host( hostname, self )
+        H.addr = ip
+        H.mac = mac
+        self.hosts.append(H);
+        self.showhosts = True
+        
+        return H
 
     def Display( self, cb ):
         """Create a graphic representation.

@@ -161,22 +161,20 @@ class ConfigUI:
                         self.tion[0].dhcp = not self.tion[0].dhcp
                 elif c[0] == 'a':
                     print "Enter subnet identifier: ",
-                    sn = str(int(sys.stdin.readline().strip()))
-                    SN = Subnet(sn)
-                    self.tion[0].subnets.append(SN)
-                    self.tion = ( self.tion[0], SN, None )
+                    sn = self.tion[0].new_subnet(sys.stdin.readline().strip())
+                    self.tion = ( self.tion[0], sn, None )
                 elif c[0] == 'r':
                     print "Enter WAN address: ",
                     self.tion[0].wan_address = sys.stdin.readline().strip()
                 elif c[0] == 's':
                     print "Enter port number: ",
                     port = int(sys.stdin.readline().strip())
-                    if port in self.local_services:
-                        self.local_services.remove(port)
+                    if port in self.C.local_services:
+                        self.C.local_services.remove(port)
                     else:
-                        self.local_services.append(port)
+                        self.C.local_services.append(port)
                 elif c[1] == (27, 91, 50, 52): # F12
-                    self.Export()
+                    self.C.Export()
                     print """Export complete.
 If you blindly trust this script, run the following commands:
 
@@ -204,23 +202,21 @@ rmdir /tmp/firewall"""
                     self.tion[1].public = not self.tion[1].public
                 elif c[0] == 'n':
                     print "Enter new prefix: ",
-                    self.tion[1].address = '192.168.{net}.0'.format(
-                        net = sys.stdin.readline().strip()
-                    )
+                    try:
+                        self.tion[1].address = str(int(
+                                sys.stdin.readline().strip() ))
+                    except ValueError:
+                        print "Error: Network prefix must be an integer between 1 and 255."
                 elif c[0] == '+':
                     print " Enter hostname: ",
-                    host = sys.stdin.readline().strip()
+                    hn = sys.stdin.readline().strip()
                     print "Enter MAC address: ",
                     mac = sys.stdin.readline().strip()
                     print "Enter IP extension: ",
-                    ip = int(sys.stdin.readline().strip())
+                    ip = sys.stdin.readline().strip()
                     
-                    H = Host( host, self.tion[1] )
-                    H.addr = ip
-                    H.mac = mac
-                    self.tion[1].hosts.append(H);
-                    self.tion[1].showhosts = True
-                    self.tion = ( self.tion[0], self.tion[1], H )
+                    host = self.tion[1].new_host( hn, mac, ip )
+                    self.tion = ( self.tion[0], self.tion[1], host )
                 elif c[0] == 'c':
                     print "Enter description: ",
                     self.tion[1].name = sys.stdin.readline().strip()
@@ -239,6 +235,8 @@ rmdir /tmp/firewall"""
             else:
                 
                 # An interface, subnet, and host are selected
+                
+                # TODO: Implement the rest of the options
                 
                 if c[1] == (27,0,0,0): # Escape
                     self.tion[1].showhosts = False
