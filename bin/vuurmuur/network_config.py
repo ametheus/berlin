@@ -197,6 +197,17 @@ class Config:
         self.tion = ( self.Interfaces[0], None, None )
     
     def open_port(self, portfile):
+        """Parse an 'open port' file.
+        
+        Parse an 'open port' file, and modify  local_services  and
+        network_services  accordingly. 'Open port' files are located in the
+        ports/  directory in the configuuration file root, and are named after
+        the port in question. They can either be empty, indicating the router
+        should accept traffic at said port itself, or contain an IP address
+        and/or port in the form 'p.q.r.s:t', indicating that all traffic should
+        be forwarded to that address and port.
+        """
+        
         try:
             f = open_file("ports/" + portfile,'r')
             c = f.read().strip()
@@ -207,6 +218,7 @@ class Config:
             return
         
         if len(c) > 0:
+            # TODO: Some form of validation. Probably a regex
             self.network_services.append( (port, c) )
         else:
             self.local_services.append( port )
