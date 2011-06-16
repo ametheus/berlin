@@ -94,7 +94,7 @@ mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
 mv /tmp/firewall/interfaces /etc/network/interfaces
 mv /tmp/firewall/if-config /etc/vuurmuur/if-config
 rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks
-mv /tmp/firewall/networks /etc/vuurmuur
+mv /tmp/firewall/{networks,ports} /etc/vuurmuur/
 rmdir /tmp/firewall
 
 

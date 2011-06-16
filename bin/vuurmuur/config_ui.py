@@ -182,7 +182,7 @@ class ConfigUI:
                     print "sudo mv /tmp/firewall/interfaces /etc/network/interfaces"
                     print "sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config"
                     print "sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks"
-                    print "sudo mv /tmp/firewall/networks /etc/vuurmuur/"
+                    print "sudo mv /tmp/firewall/{networks,ports} /etc/vuurmuur/"
                     print "rmdir /tmp/firewall"
                     sys.stdin.readline()
                 else:
