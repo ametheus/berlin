@@ -22,6 +22,11 @@ import sys
 
 
 C = vuurmuur.Config()
+
+if '--print' in sys.argv:
+    C.Display()
+    sys.exit(0)
+
 UI = vuurmuur.ConfigUI(C)
 UI.loop()
 
