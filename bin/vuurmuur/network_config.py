@@ -232,13 +232,23 @@ class Config:
             'rm', '-rf', '/tmp/firewall'
         ])
         os.mkdir( '/tmp/firewall' )
-        os.mkdir( '/tmp/firewall/networks' )
+        
+        # Export special configuration files
         file_put_contents( '/tmp/firewall/if-config', self.if_config_file() )
         file_put_contents( '/tmp/firewall/interfaces', self.interfaces_file() )
         file_put_contents( '/tmp/firewall/dhcpd.conf', self.dhcp_conf() )
         
+        # Export all networks
+        os.mkdir( '/tmp/firewall/networks' )
         for I in self.Interfaces:
             I.Export( '/tmp/firewall/networks' )
+        
+        # Export all open or forwarded ports
+        os.mkdir( '/tmp/firewall/ports' )
+        for port in self.local_services:
+            file_put_contents( '/tmp/firewall/ports/' + str(int(port)), '' )
+        for port,host in self.network_services:
+            file_put_contents( '/tmp/firewall/ports/' + str(int(port)), host )
     
     
     def if_config_file( self ):
@@ -255,7 +265,6 @@ class Config:
             [ d.name        for d in self.Interfaces if d.wan_interface and d.enabled ]
         rv['internal interface'] = \
             [ d.name        for d in self.Interfaces if not d.wan_interface and d.enabled ]
-        rv['local services'] = [ str(i) for i in self.local_services ]
         
         return unparse_file( rv )
     
