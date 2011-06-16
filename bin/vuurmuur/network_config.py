@@ -153,8 +153,8 @@ class Config:
     Interfaces = None
     ifconfig = None
     
-    local_services = [ 22, 80, 443, 19360 ] # TODO: implement
-    network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
+    local_services = []
+    network_services = []
     
     def __init__( self, network_devices=None ):
         """Parses the config directories into a Config class."""
@@ -174,7 +174,10 @@ class Config:
         
         # Parse local services
         if not 'undefined' in self.ifconfig['local services']:
-            self.local_services = [ int(p) for p in self.ifconfig['local services'] ]
+            self.local_services += [ int(p) for p in self.ifconfig['local services'] ]
+        for portfile in list_directory('ports'):
+            self.open_port(portfile)
+        
         
         # Get a list of subnets
         nets = list_directory('networks')
@@ -192,6 +195,21 @@ class Config:
             gb.subnets.append(Subnet(N))
         
         self.tion = ( self.Interfaces[0], None, None )
+    
+    def open_port(self, portfile):
+        try:
+            f = open_file("ports/" + portfile,'r')
+            c = f.read().strip()
+            f.close()
+            port = int(portfile)
+        except IOError, ValueError: 
+            print "Error parsing portfile {0}".format(portfile)
+            return
+        
+        if len(c) > 0:
+            self.network_services.append( (port, c) )
+        else:
+            self.local_services.append( port )
     
     def Export( self ):
         """Writes back all config files into /tmp/firewall/."""
