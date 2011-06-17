@@ -2,14 +2,14 @@
 
     Copyright (C) 2011  Thijs van Dijk
 
-    This file is part of vuurmuur.
+    This file is part of berlin.
 
-    Vuurmuur is free software: you can redistribute it and/or modify
+    Berlin is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Vuurmuur is distributed in the hope that it will be useful,
+    Berlin is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     file "COPYING" for details.
@@ -180,9 +180,9 @@ class ConfigUI:
                     print ""
                     print "sudo mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf"
                     print "sudo mv /tmp/firewall/interfaces /etc/network/interfaces"
-                    print "sudo mv /tmp/firewall/if-config /etc/vuurmuur/if-config"
-                    print "sudo rm -rf /etc/firewall.d/config/networks /etc/vuurmuur/networks"
-                    print "sudo mv /tmp/firewall/{networks,ports} /etc/vuurmuur/"
+                    print "sudo mv /tmp/firewall/if-config /etc/berlin/if-config"
+                    print "sudo rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks"
+                    print "sudo mv /tmp/firewall/{networks,ports} /etc/berlin/"
                     print "rmdir /tmp/firewall"
                     sys.stdin.readline()
                 else:

@@ -3,14 +3,14 @@
 
     Copyright (C) 2011  Thijs van Dijk
 
-    This file is part of vuurmuur.
+    This file is part of berlin.
 
-    Vuurmuur is free software: you can redistribute it and/or modify
+    Berlin is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Vuurmuur is distributed in the hope that it will be useful,
+    Berlin is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     file "COPYING" for details.
@@ -29,7 +29,7 @@ def open_file( filename, mode ):
         # This is an absolute path, so just open that file.
         return open( filename, mode )
     
-    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
+    locations = ['/etc/berlin/','/etc/vuurmuur/','/etc/firewall.d/config/']
     
     for L in locations:
         fn = L + filename
@@ -51,7 +51,7 @@ def list_directory( dir ):
         except OSError:
             return []
     
-    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
+    locations = ['/etc/berlin/','/etc/vuurmuur/','/etc/firewall.d/config/']
     
     for L in locations:
         dn = L + dir
@@ -148,7 +148,7 @@ def null_callback(s,o):
     print s
 
 class Config:
-    """Complete network configuration for vuurmuur."""
+    """Complete network configuration for berlin."""
     
     Interfaces = None
     ifconfig = None
