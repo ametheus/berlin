@@ -72,14 +72,27 @@ class Ruleset:
             self.all_chains[tb] = dict()
         
         # Initialize default chains
-        self.new_chain('PREROUTING', 'nat',      'ACCEPT')
-        self.new_chain('POSTROUTING','nat',      'ACCEPT')
-        self.new_chain('OUTPUT',     'nat',      'ACCEPT')
-        self.new_chain('INPUT',      'filter',   'DROP')
-        self.new_chain('FORWARD',    'filter',   'DROP')
-        self.new_chain('OUTPUT',     'filter',   'DROP')
+        self.new_chain('PREROUTING', 'nat',      'ACCEPT',
+                'The PREROUTING chain is used to alter packets as soon as\n' + \
+                'they get in to the berlin firewall.')
+        self.new_chain('OUTPUT',     'nat',      'ACCEPT',
+                'The OUTPUT chain is used for altering locally generated\n' + \
+                'packets before they get to the routing decision.')
+        self.new_chain('POSTROUTING','nat',      'ACCEPT',
+                'the POSTROUTING chain is used to alter packets just as\n' + \
+                'they are about to leave the berlin firewall.')
+        
+        self.new_chain('FORWARD',    'filter',   'DROP',
+                'The FORWARD chain is used on all non-locally generated\n' + \
+                'packets that are not destined for the berlin firewall itself.')
+        self.new_chain('INPUT',      'filter',   'DROP',
+                'The INPUT chain is used on all packets that are destined\n' + \
+                'for the berlin wall, both from the internal network and the\n' + \
+                'public internet.')
+        self.new_chain('OUTPUT',     'filter',   'DROP',
+                'The OUTPUT chain is used for locally generated packets.')
     
-    def new_chain(self,chain,table='filter',policy='DROP'):
+    def new_chain(self,chain,table='filter',policy='DROP', description=None):
         """Add a new chain.
         
         Add a new chain {chain} to {table} with default policy {policy}.
@@ -106,10 +119,17 @@ class Ruleset:
         if not table in self.all_chains:
             raise Exception( "Invalid table {0}. Keys: {1}".format(
                     table,self.all_chains.keys()) )
+        
+        if not description:
+            # No description given, so set a default one.
+            description = ('The function of the chain `{0}` is thought to be\n' + \
+                    'self-explanatory.').format(chain)
+        
         if not chain in self.all_chains[table]:
             self.all_chains[table][chain] = dict({
-                'policy': policy,
-                'rules': []
+                    'policy': policy,
+                    'rules': [],
+                    'description': description
             })
         else:
             raise Exception("Chain {0} in table {1} already exists.")
@@ -268,8 +288,8 @@ class Ruleset:
             table = self.all_chains[tb]
             
             # Write down what the table does
-            f.write('\n\n\n#  \n#  {0}\n#  \n'.format(
-                    self.table_description[tb].replace('\n','\n#  ') ))
+            f.write('\n\n\n\n###     \n###     {0}\n###     \n\n'.format(
+                    self.table_description[tb].replace('\n','\n###     ') ))
             
             f.write('*{0}\n'.format(tb))
             
@@ -286,6 +306,11 @@ class Ruleset:
             
             # Write all the rules for the user-defined chains
             for ch,chain in table.items():
+                if len(chain['rules']) > 0:
+                    # Write the description first.
+                    f.write('\n\n##  {0}\n\n'.format(
+                            chain['description'].replace('\n','\n##  ') ))
+                
                 for r in chain['rules']:
                     if not r:
                         f.write('\n')
@@ -295,7 +320,7 @@ class Ruleset:
                         f.write('-A {0} {1}\n'.format(ch,r))
             
             # Commit everything.
-            f.write('COMMIT\n')
+            f.write('\n\nCOMMIT\n')
         
         f.close()
     

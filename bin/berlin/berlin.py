@@ -75,11 +75,6 @@ class Berlin(Ruleset):
         
         self.reset()
         
-        self.append_chain('INPUT',None)
-        self.append_chain('INPUT',None)
-        self.append_chain('INPUT','#   INPUT: Incoming traffic from various interfaces')
-        self.append_chain('INPUT',None)
-        
         self.append_chain('INPUT','#Loopback interface is valid' )
         self.append_chain('INPUT','-i lo -j ACCEPT')
         
@@ -138,11 +133,6 @@ class Berlin(Ruleset):
         self.append_chain('INPUT','# Reject everything else.' )
         self.append_chain('INPUT','-j REJECT --reject-with icmp-port-unreachable')
         
-        self.append_chain('OUTPUT',None)
-        self.append_chain('OUTPUT',None)
-        self.append_chain('OUTPUT','#   OUTPUT: Outgoing traffic from various interfaces #' )
-        self.append_chain('OUTPUT',None)
-        
         self.append_chain('OUTPUT','# Workaround bug in netfilter' )
         self.append_chain('OUTPUT','-p icmp -m state --state INVALID -j DROP')
         
@@ -190,13 +180,6 @@ class Berlin(Ruleset):
         self.append_chain('OUTPUT','-j REJECT --reject-with icmp-port-unreachable')
         
         
-        
-        
-        
-        self.append_chain('FORWARD',None)
-        self.append_chain('FORWARD',None)
-        self.append_chain('FORWARD','# Packet Forwarding / NAT' )
-        self.append_chain('FORWARD',None)
         
         
         
