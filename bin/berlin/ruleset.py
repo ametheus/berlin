@@ -18,6 +18,7 @@
 """
 
 import os,subprocess
+from collections import defaultdict
 
 class Ruleset:
     """A collection of iptables rules.
@@ -26,8 +27,19 @@ class Ruleset:
     stack."""
     
     all_chains = dict({})
+    table_description = defaultdict(lambda s: \
+            'I have no idea what the table `{0}` does.'.format(s))
     
     def __init__(self):
+        
+        # Initialize descriptions for default tables.
+        self.table_description['nat'] = \
+                'The nat table is used mainly for Network Address Translation.\n' + \
+                'Packets get their IP addresses altered according to these rules.'
+        self.table_description['filter'] = \
+                'The `filter` table is the main venue for deciding whether or not\n' + \
+                'a packet is desired.'
+        
         self.reset()
     
     def reset(self):
@@ -218,11 +230,23 @@ class Ruleset:
         
         >>> f = open( '/tmp/doctest_output_chains', 'r' )
         >>> print f.read()
+        <BLANKLINE>
+        <BLANKLINE>
+        <BLANKLINE>
+        #  
+        ...
+        #  
         *nat
         :PREROUTING ACCEPT [0:0]
         :POSTROUTING ACCEPT [0:0]
         :OUTPUT ACCEPT [0:0]
         COMMIT
+        <BLANKLINE>
+        <BLANKLINE>
+        <BLANKLINE>
+        #  
+        ...
+        #  
         *filter
         :INPUT DROP [0:0]
         :FORWARD DROP [0:0]
@@ -242,6 +266,11 @@ class Ruleset:
         
         for tb in ['nat','filter']:
             table = self.all_chains[tb]
+            
+            # Write down what the table does
+            f.write('\n\n\n#  \n#  {0}\n#  \n'.format(
+                    self.table_description[tb].replace('\n','\n#  ') ))
+            
             f.write('*{0}\n'.format(tb))
             
             # Write the chain declarations for all buitin chains
