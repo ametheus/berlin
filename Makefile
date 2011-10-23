@@ -35,12 +35,12 @@ clean:
 
 
 
-debian: ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz \
+debian: ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz \
 		../berlin_$(PVERSION).dsc  ../berlin_$(PVERSION)_source.changes
 	@true
 
-../berlin_$(VERSION).orig.tar: clean
-	tar -cf ../berlin_$(VERSION).orig.tar  \
+../berlin_$(VERSION).orig.tar.gz: clean
+	tar -pczf ../berlin_$(VERSION).orig.tar.gz  \
 		apache  bin  config  debian  helper-scripts  COPYING  Makefile  README
 
 ../berlin_$(PVERSION).debian.tar.gz: \
@@ -75,7 +75,7 @@ debian/source/format:
 	echo "3.0 (quilt)" > debian/source/format
 
 
-../berlin_$(PVERSION).dsc:  ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz
+../berlin_$(PVERSION).dsc:  ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz
 	@echo "Generating .dsc file..."
 	@echo "Format: 3.0 (quilt)"                                    > $@
 	@echo "Source: berlin"                                        >> $@
@@ -86,21 +86,25 @@ debian/source/format:
 	@grep "Homepage:"           debian/control                    >> $@
 	@grep "Standards-Version:"  debian/control                    >> $@
 	@grep "Build-Depends:"      debian/control                    >> $@
+	
+	@$(eval s_org=$(shell stat ../berlin_$(VERSION).orig.tar.gz    | grep Size | cut -d ' ' -f4))
+	@$(eval s_dbn=$(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4))
+	
 	@echo "Checksums-Sha1:"                                       >> $@
-	@echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar         | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
-	@echo " $(shell sha1sum ../berlin_$(PVERSION).debian.tar.gz   | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	@echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar.gz      | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar.gz"    >> $@
+	@echo " $(shell sha1sum ../berlin_$(PVERSION).debian.tar.gz   | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
 	@echo "Checksums-Sha256:"                                     >> $@
-	@echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar       | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
-	@echo " $(shell sha256sum ../berlin_$(PVERSION).debian.tar.gz | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	@echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar.gz    | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar.gz"    >> $@
+	@echo " $(shell sha256sum ../berlin_$(PVERSION).debian.tar.gz | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
 	@echo "Files:"                                                >> $@
-	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar          | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
-	@echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar.gz       | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar.gz"    >> $@
+	@echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
 	@echo ""                                                      >> $@
 	
 	gpg --clearsign $@
 	mv $@.asc $@
 
-../berlin_$(PVERSION)_source.changes:  ../berlin_$(VERSION).orig.tar \
+../berlin_$(PVERSION)_source.changes:  ../berlin_$(VERSION).orig.tar.gz \
 		../berlin_$(PVERSION).debian.tar.gz  ../berlin_$(PVERSION).dsc
 	
 	@echo "Generating .changes file..."
@@ -127,7 +131,7 @@ debian/source/format:
 	
 	
 	@$(eval s_dsc=$(shell stat ../berlin_$(PVERSION).dsc           | grep Size | cut -d ' ' -f4))
-	@$(eval s_org=$(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4))
+	@$(eval s_org=$(shell stat ../berlin_$(VERSION).orig.tar.gz    | grep Size | cut -d ' ' -f4))
 	@$(eval s_dbn=$(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4))
 	
 	@$(eval SECT=$(shell grep Section debian/control | cut -d: -f2 | tr -d \ ))
@@ -135,13 +139,13 @@ debian/source/format:
 	
 	@echo "Checksums-Sha1:"                                       >> $@
 	@echo " $(shell sha1sum ../berlin_$(PVERSION).dsc             | grep -oP '^[0-9a-f]+') $(s_dsc) berlin_$(PVERSION).dsc"           >> $@
-	@echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar         | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar.gz      | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar.gz"    >> $@
 	@echo " $(shell sha1sum ../berlin_$(PVERSION).debian.tar.gz   | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
 	@echo "Checksums-Sha256:"                                     >> $@
 	@echo " $(shell sha256sum ../berlin_$(PVERSION).dsc           | grep -oP '^[0-9a-f]+') $(s_dsc) berlin_$(PVERSION).dsc"           >> $@
-	@echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar       | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar.gz    | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar.gz"    >> $@
 	@echo " $(shell sha256sum ../berlin_$(PVERSION).debian.tar.gz | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
 	@echo "Files:"                                                >> $@
 	@echo " $(shell md5sum ../berlin_$(PVERSION).dsc              | grep -oP '^[0-9a-f]+') $(s_dsc) $(SECT) $(priority) berlin_$(PVERSION).dsc"           >> $@
-	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar          | grep -oP '^[0-9a-f]+') $(s_org) $(SECT) $(priority) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar.gz       | grep -oP '^[0-9a-f]+') $(s_org) $(SECT) $(priority) berlin_$(VERSION).orig.tar.gz"    >> $@
 	@echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(s_dbn) $(SECT) $(priority) berlin_$(PVERSION).debian.tar.gz" >> $@
