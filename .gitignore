@@ -5,7 +5,7 @@ config/if-config
 config/networks/*
 
 old.rules/*
-rules
+./rules
 
 debian/changelog
 debian/compat
