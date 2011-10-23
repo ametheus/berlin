@@ -50,7 +50,7 @@ debian: ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz  ../b
 	
 
 debian/changelog:
-	echo "backnat (${PVERSION}) ${RELEASE}; urgency=low"          > debian/changelog
+	echo "berlin (${PVERSION}) ${RELEASE}; urgency=low"           > debian/changelog
 	echo ""                                                      >> debian/changelog
 	echo "  * New upstream version"                              >> debian/changelog
 	echo ""                                                      >> debian/changelog
@@ -58,7 +58,7 @@ debian/changelog:
 debian/compat:
 	echo 7 > debian/compat
 debian/copyright:
-	echo "This work was packaged for Debian by:"                 >> debian/copyright
+	echo "This work was packaged for Debian by:"                  > debian/copyright
 	echo ""                                                      >> debian/copyright
 	echo "    ${DEBFULLNAME} <${DEBEMAIL}> on $(shell date -R)"  >> debian/copyright
 	cat debian/copyright.part                                    >> debian/copyright
@@ -71,5 +71,29 @@ debian/source/format:
 	mkdir -p debian/source
 	echo "3.0 (quilt)" > debian/source/format
 
+
+../berlin_$(PVERSION).dsc:  ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz
+	echo "Format: 3.0 (quilt)"                                    > $@
+	echo "Source: berlin"                                        >> $@
+	echo "Binary: berlin"                                        >> $@
+	grep "Architecture:"       debian/control                    >> $@
+	echo "Version: $(PVERSION)"                                  >> $@
+	grep "Maintainer:"         debian/control                    >> $@
+	grep "Homepage:"           debian/control                    >> $@
+	grep "Standards-Version:"  debian/control                    >> $@
+	grep "Build-Depends:"      debian/control                    >> $@
+	echo "Checksums-Sha1:"                                       >> $@
+	echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar         | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
+	echo " $(shell sha1sum ../berlin_$(PVERSION).debian.tar.gz   | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	echo "Checksums-Sha256:"                                     >> $@
+	echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar       | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
+	echo " $(shell sha256sum ../berlin_$(PVERSION).debian.tar.gz | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	echo "Files:"                                                >> $@
+	echo " $(shell md5sum ../berlin_$(VERSION).orig.tar          | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4) berlin_$(VERSION).orig.tar"       >> $@
+	echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4) berlin_$(PVERSION).debian.tar.gz" >> $@
+	echo ""                                                      >> $@
+	
+	gpg --clearsign $@
+	mv $@.asc $@
 
 
