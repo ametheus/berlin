@@ -1,3 +1,43 @@
-#!/bin/sh
+#!/bin/bash
+
+
+# Enable the virtualhosts
+a2ensite 000-adblock
+
+# Create a new log file for the adblock CGI
+touch /var/log/adblock.log
+chown www-data:www-data /var/log/adblock.log
+
+# Enable required modules
+a2enmod rewrite
+a2enmod proxy
+a2enmod proxy_http
+
+# Restart apache
+service apache2 restart
+
+
+
+# Generate configuration files
+cd /usr/share/berlin/bin
+./generate-config.py --blind-faith
+
+
+
+# Yes, I blindly trust the deploy script.
+mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
+mv /tmp/firewall/interfaces /etc/network/interfaces
+mv /tmp/firewall/if-config /etc/berlin/if-config
+rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks
+mv /tmp/firewall/{networks,ports} /etc/berlin/
+rmdir /tmp/firewall
+
+
+# Execute the scripts
+/usr/sbin/recreate-firewall
+/etc/init.d/networking restart
+service dhcp3-server restart
+
+
 
 #DEBHELPER#
