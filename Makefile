@@ -3,7 +3,7 @@ DESTDIR=
 
 VERSION=0.4a1
 PVERSION=$(VERSION)-0ubuntu1
-RELEASE=lucid
+DIST=lucid
 
 
 all: bin/rules.py
@@ -35,7 +35,8 @@ clean:
 
 
 
-debian: ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz  ../berlin_$(PVERSION).dsc
+debian: ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz \
+		../berlin_$(PVERSION).dsc  ../berlin_$(PVERSION)_source.changes
 	@true
 
 ../berlin_$(VERSION).orig.tar: clean
@@ -51,7 +52,7 @@ debian: ../berlin_$(VERSION).orig.tar  ../berlin_$(PVERSION).debian.tar.gz  ../b
 
 debian/changelog:
 	@echo "Generating changelog..."
-	@echo "berlin (${PVERSION}) ${RELEASE}; urgency=low"           > debian/changelog
+	@echo "berlin (${PVERSION}) ${DIST}; urgency=low"              > debian/changelog
 	@echo ""                                                      >> debian/changelog
 	@echo "  * New upstream version"                              >> debian/changelog
 	@echo ""                                                      >> debian/changelog
@@ -99,4 +100,48 @@ debian/source/format:
 	gpg --clearsign $@
 	mv $@.asc $@
 
-
+../berlin_$(PVERSION)_source.changes:  ../berlin_$(VERSION).orig.tar \
+		../berlin_$(PVERSION).debian.tar.gz  ../berlin_$(PVERSION).dsc
+	
+	@echo "Generating .changes file..."
+	
+	@echo "Format: 1.8"                                            > $@
+	@echo "Date: $(shell date -R)"                                >> $@
+	@echo "Source: berlin"                                        >> $@
+	@echo "Binary: berlin"                                        >> $@
+	@echo "Architecture: source"                                  >> $@
+	@echo "Version: $(PVERSION)"                                  >> $@
+	@echo "Distribution: $(DIST)"                                 >> $@
+	@echo "Urgency: low"                                          >> $@
+	@grep "Maintainer:"         debian/control                    >> $@
+	@echo "Changed-By: ${DEBFULLNAME} <${DEBEMAIL}>"              >> $@
+	
+	@echo "Description:"                                          >> $@
+	@echo " berlin    - $(shell grep Description debian/control | cut -d: -f2)"  >> $@
+	
+	@echo "Changes:"                                              >> $@
+	@echo -n " "                                                  >> $@
+	@head -1 debian/changelog                                     >> $@
+	@echo " ."                                                    >> $@
+	@grep -P "^  \*" debian/changelog | sed 's/\*/ \*/'           >> $@
+	
+	
+	@$(eval s_dsc=$(shell stat ../berlin_$(PVERSION).dsc           | grep Size | cut -d ' ' -f4))
+	@$(eval s_org=$(shell stat ../berlin_$(VERSION).orig.tar       | grep Size | cut -d ' ' -f4))
+	@$(eval s_dbn=$(shell stat ../berlin_$(PVERSION).debian.tar.gz | grep Size | cut -d ' ' -f4))
+	
+	@$(eval SECT=$(shell grep Section debian/control | cut -d: -f2 | tr -d \ ))
+	@$(eval priority=$(shell grep Priority debian/control | cut -d: -f2 | tr -d \ ))
+	
+	@echo "Checksums-Sha1:"                                       >> $@
+	@echo " $(shell sha1sum ../berlin_$(PVERSION).dsc             | grep -oP '^[0-9a-f]+') $(s_dsc) berlin_$(PVERSION).dsc"           >> $@
+	@echo " $(shell sha1sum ../berlin_$(VERSION).orig.tar         | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell sha1sum ../berlin_$(PVERSION).debian.tar.gz   | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
+	@echo "Checksums-Sha256:"                                     >> $@
+	@echo " $(shell sha256sum ../berlin_$(PVERSION).dsc           | grep -oP '^[0-9a-f]+') $(s_dsc) berlin_$(PVERSION).dsc"           >> $@
+	@echo " $(shell sha256sum ../berlin_$(VERSION).orig.tar       | grep -oP '^[0-9a-f]+') $(s_org) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell sha256sum ../berlin_$(PVERSION).debian.tar.gz | grep -oP '^[0-9a-f]+') $(s_dbn) berlin_$(PVERSION).debian.tar.gz" >> $@
+	@echo "Files:"                                                >> $@
+	@echo " $(shell md5sum ../berlin_$(PVERSION).dsc              | grep -oP '^[0-9a-f]+') $(s_dsc) $(SECT) $(priority) berlin_$(PVERSION).dsc"           >> $@
+	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar          | grep -oP '^[0-9a-f]+') $(s_org) $(SECT) $(priority) berlin_$(VERSION).orig.tar"       >> $@
+	@echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(s_dbn) $(SECT) $(priority) berlin_$(PVERSION).debian.tar.gz" >> $@

@@ -9,12 +9,12 @@ Homepage: https://github.com/ametheus/berlin
 Package: berlin
 Architecture: all
 Depends: ${python:Depends}, ${misc:Depends}, iptables (>= 1.4), apache2 (>= 2.2), libapache2-mod-php5 (>= 5.3)
-Description: Berlin is a collection of firewall configuration scripts.
-.
-Berlin is an attempt to make my personal firewall config scripts available to
-the public. The project, is named after another historic wall.
-.
-Key features:
- -  Easily deployable NAT firewall
- -  Multiple subnets
- -  Content filtering
+Description: A collection of firewall configuration scripts.
+ .
+ Berlin is an attempt to make my personal firewall config scripts available to
+ the public. The project, is named after another historic wall.
+ .
+ Key features:
+  -  Easily deployable NAT firewall
+  -  Multiple subnets
+  -  Content filtering
