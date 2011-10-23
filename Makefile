@@ -37,9 +37,14 @@ clean:
 deb-clean:
 	rm -rf  debian/changelog  debian/compat  debian/copyright  debian/docs  debian/source
 
-debian: ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz \
-		../berlin_$(PVERSION).dsc  ../berlin_$(PVERSION)_source.changes
-	@true
+debian: ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz
+	debuild
+#		../berlin_$(PVERSION).dsc
+
+debian-test: ../berlin_$(PVERSION).dsc  ../berlin_$(PVERSION)_source.changes \
+		../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz
+	sudo pbuilder build $<
+	lintian -Ivi $<
 
 ../berlin_$(VERSION).orig.tar.gz: clean deb-clean
 	tar --transform 's,^,berlin-$(VERSION)/,S' -pczf ../berlin_$(VERSION).orig.tar.gz  \
@@ -48,7 +53,7 @@ debian: ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz \
 ../berlin_$(PVERSION).debian.tar.gz: \
 		debian/changelog  debian/compat  debian/control  debian/copyright  debian/docs  \
 		debian/postinst   debian/postrm  debian/preinst  debian/prerm      debian/rules  \
-		debian/source/format
+		debian/source/format  debian/watch
 	tar -pczf ../berlin_$(PVERSION).debian.tar.gz  $^
 	
 
@@ -151,3 +156,8 @@ debian/source/format:
 	@echo " $(shell md5sum ../berlin_$(PVERSION).dsc              | grep -oP '^[0-9a-f]+') $(s_dsc) $(SECT) $(priority) berlin_$(PVERSION).dsc"           >> $@
 	@echo " $(shell md5sum ../berlin_$(VERSION).orig.tar.gz       | grep -oP '^[0-9a-f]+') $(s_org) $(SECT) $(priority) berlin_$(VERSION).orig.tar.gz"    >> $@
 	@echo " $(shell md5sum ../berlin_$(PVERSION).debian.tar.gz    | grep -oP '^[0-9a-f]+') $(s_dbn) $(SECT) $(priority) berlin_$(PVERSION).debian.tar.gz" >> $@
+	
+	@echo ""                                                      >> $@
+	
+	gpg --clearsign $@
+	mv $@.asc $@
