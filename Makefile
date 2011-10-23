@@ -25,22 +25,24 @@ install:
 	install -m 0644 apache/*.*           $(DESTDIR)/etc/berlin/apache/
 	
 	
+	mkdir -p $(DESTDIR)/etc/apache2/sites-available
 	ln -s $(DESTDIR)/etc/berlin/apache/adblock.conf   $(DESTDIR)/etc/apache2/sites-available/000-adblock
 	
 
 
 clean:
 	find . -name "*.pyc" -exec rm {} \; -print
+
+
+deb-clean:
 	rm -rf  debian/changelog  debian/compat  debian/copyright  debian/docs  debian/source
-
-
 
 debian: ../berlin_$(VERSION).orig.tar.gz  ../berlin_$(PVERSION).debian.tar.gz \
 		../berlin_$(PVERSION).dsc  ../berlin_$(PVERSION)_source.changes
 	@true
 
-../berlin_$(VERSION).orig.tar.gz: clean
-	tar -pczf ../berlin_$(VERSION).orig.tar.gz  \
+../berlin_$(VERSION).orig.tar.gz: clean deb-clean
+	tar --transform 's,^,berlin-$(VERSION)/,S' -pczf ../berlin_$(VERSION).orig.tar.gz  \
 		apache  bin  config  debian  helper-scripts  COPYING  Makefile  README
 
 ../berlin_$(PVERSION).debian.tar.gz: \
