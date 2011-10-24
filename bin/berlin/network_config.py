@@ -406,7 +406,8 @@ class Iface:
                 self.subnets.append( N )
                 nets.remove( net )
         
-        ifc = subprocess.Popen( ['/sbin/ifconfig', name], stdout = subprocess.PIPE )
+        ifc = subprocess.Popen( ['/sbin/ifconfig', name], stdout = subprocess.PIPE, stderr = subprocess.PIPE )
+        ifc.stderr.close()
         pipe = subprocess.Popen( [ '/bin/sh', '-c',
             'grep -oP "inet addr:(([0-9]+\.){3}[0-9]+)" | cut -d: -f2'
         ], stdin = ifc.stdout, stdout = subprocess.PIPE )
