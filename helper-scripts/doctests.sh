@@ -6,7 +6,7 @@ for F in  berlin/config_ui.py  berlin/network_config.py \
           berlin/ruleset.py    berlin/berlin.py
 do
     echo -n "Running doctests from file [$F]... "
-    python $F
+    python $F $@
     
     if [ $? -ne 0 ]
     then
