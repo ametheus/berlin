@@ -1,7 +1,7 @@
 
 DESTDIR=
 
-VERSION=0.4a1
+VERSION=0.4a2
 PVERSION=$(VERSION)-0ubuntu1
 DIST=lucid
 
@@ -23,6 +23,8 @@ install:
 	install -m 0644 config/*             $(DESTDIR)/etc/berlin/
 	install -m 0644 apache/filtered/*    $(DESTDIR)/etc/berlin/apache/filtered/
 	install -m 0644 apache/*.*           $(DESTDIR)/etc/berlin/apache/
+	
+	chmod +x $(DESTDIR)/etc/berlin/apache/cgi.sh
 	
 	
 	mkdir -p $(DESTDIR)/etc/apache2/sites-available
