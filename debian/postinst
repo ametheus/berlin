@@ -5,7 +5,7 @@ case "$1" in
     # Take extra configuration steps
     :
 
-    if [ "2" == "" ]
+    if [ "$2" == "" ]
     then
         # No previous version was installed; this is a fresh installation.
         
