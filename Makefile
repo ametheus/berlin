@@ -26,7 +26,7 @@ install:
 	
 	
 	mkdir -p $(DESTDIR)/etc/apache2/sites-available
-	ln -s $(DESTDIR)/etc/berlin/apache/adblock.conf   $(DESTDIR)/etc/apache2/sites-available/000-adblock
+	ln -s ../../berlin/apache/adblock.conf   $(DESTDIR)/etc/apache2/sites-available/000-adblock
 	
 
 

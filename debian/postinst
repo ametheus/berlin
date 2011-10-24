@@ -24,17 +24,19 @@ cd /usr/share/berlin/bin
 
 
 
-# Yes, I blindly trust the deploy script.
+# Yes, I blindly trust the above script.
 mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
 mv /tmp/firewall/interfaces /etc/network/interfaces
 mv /tmp/firewall/if-config /etc/berlin/if-config
 rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks
+rm -rf /etc/berlin/{networks,ports} 
 mv /tmp/firewall/{networks,ports} /etc/berlin/
 rmdir /tmp/firewall
 
 
 # Execute the scripts
 /usr/sbin/recreate-firewall
+ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
 /etc/init.d/networking restart
 service dhcp3-server restart
 

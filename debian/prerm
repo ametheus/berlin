@@ -1,3 +1,23 @@
-#!/bin/sh
+#!/bin/bash
+
+
+# Leave iptables rules in place
+if [ -f /etc/default/iptables ]
+then
+    cp /etc/default/iptables{,.old}
+fi
+
+cp /etc/berlin/rules /etc/default/iptables
+
+
+# Remove apache site
+a2dissite 000-adblock
+rm /etc/apache2/sites-available/000-adblock
+
+service apache2 reload
+
+# Remove autostart links
+rm /etc/network/if-pre-up.d/berlin-firewall
+
 
 #DEBHELPER#
