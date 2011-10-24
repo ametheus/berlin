@@ -84,7 +84,7 @@ service apache2 restart
 
 
 # Generate configuration files
-cd bin
+cd /usr/share/berlin/bin
 ./generate-config.py --blind-faith
 
 

@@ -1,0 +1,20 @@
+Source: berlin
+Section: network
+Priority: optional
+Maintainer: Thijs van Dijk <ametheus@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.2
+Homepage: https://github.com/ametheus/berlin
+
+Package: berlin
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}, iptables (>= 1.4), apache2 (>= 2.2), libapache2-mod-php5 (>= 5.3), bind9 (>= 1:9.7), dhcp3-server (>= 3.1)
+Description: A collection of firewall configuration scripts.
+ .
+ Berlin is an attempt to make my personal firewall config scripts available to
+ the public. The project, is named after another historic wall.
+ .
+ Key features:
+  -  Easily deployable NAT firewall
+  -  Multiple subnets
+  -  Content filtering

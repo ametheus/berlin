@@ -1,0 +1,5 @@
+# 
+# Until I've figured out how to watch a github page in a meaningful way,
+# the debian/watch file will be empty except for comments.
+# (This is in order to keep lintian happy.)
+# 
