@@ -14,6 +14,7 @@ do
         echo ""
         echo ""
         echo "Some doctests failed to run."
+        echo "In particular, the ones from [$F] failed miserably."
         exit 1
     fi
     

@@ -290,4 +290,6 @@ class Berlin(Ruleset):
 
 if __name__ == '__main__':
     import doctest
-    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    import sys
+    sys.exit( fail )

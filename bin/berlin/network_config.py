@@ -748,4 +748,5 @@ class Host:
 if __name__ == '__main__':
     
     import doctest
-    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    sys.exit( fail )
