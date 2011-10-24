@@ -251,26 +251,28 @@ class Ruleset:
         >>> f = open( '/tmp/doctest_output_chains', 'r' )
         >>> print f.read()
         <BLANKLINE>
-        <BLANKLINE>
-        <BLANKLINE>
-        #  
         ...
-        #  
+        ###     
+        ...
+        ###     
+        <BLANKLINE>
         *nat
         :PREROUTING ACCEPT [0:0]
         :POSTROUTING ACCEPT [0:0]
         :OUTPUT ACCEPT [0:0]
         COMMIT
         <BLANKLINE>
-        <BLANKLINE>
-        <BLANKLINE>
-        #  
         ...
-        #  
+        ###     
+        ...
+        ###     
+        <BLANKLINE>
         *filter
         :INPUT DROP [0:0]
         :FORWARD DROP [0:0]
         :OUTPUT DROP [0:0]
+        <BLANKLINE>
+        <BLANKLINE>
         COMMIT
         <BLANKLINE>
         >>> f.close()
