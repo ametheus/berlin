@@ -1,45 +1,65 @@
 #!/bin/bash
 
+case "$1" in
+  configure)
+    # Take extra configuration steps
+    :
 
-# Enable the virtualhosts
-a2ensite 000-adblock
+    if [ "2" == "" ]
+    then
+        # No previous version was installed; this is a fresh installation.
+        
+        
+        # Enable the virtualhosts
+        a2ensite 000-adblock
 
-# Create a new log file for the adblock CGI
-touch /var/log/adblock.log
-chown www-data:www-data /var/log/adblock.log
+        # Create a new log file for the adblock CGI
+        touch /var/log/adblock.log
+        chown www-data:www-data /var/log/adblock.log
 
-# Enable required modules
-a2enmod rewrite
-a2enmod proxy
-a2enmod proxy_http
+        # Enable required modules
+        a2enmod rewrite
+        a2enmod proxy
+        a2enmod proxy_http
 
-# Restart apache
-service apache2 restart
-
-
-
-# Generate configuration files
-cd /usr/share/berlin/bin
-./generate-config.py --blind-faith
-
-
-
-# Yes, I blindly trust the above script.
-mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
-mv /tmp/firewall/interfaces /etc/network/interfaces
-mv /tmp/firewall/if-config /etc/berlin/if-config
-rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks
-rm -rf /etc/berlin/{networks,ports} 
-mv /tmp/firewall/{networks,ports} /etc/berlin/
-rmdir /tmp/firewall
+        # Restart apache
+        service apache2 restart
 
 
-# Execute the scripts
-/usr/sbin/recreate-firewall
-ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
-/etc/init.d/networking restart
-service dhcp3-server restart
 
+        # Generate configuration files
+        cd /usr/share/berlin/bin
+        ./generate-config.py --blind-faith
+
+
+
+        # Yes, I blindly trust the above script.
+        mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
+        mv /tmp/firewall/interfaces /etc/network/interfaces
+        mv /tmp/firewall/if-config /etc/berlin/if-config
+        rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks
+        rm -rf /etc/berlin/{networks,ports} 
+        mv /tmp/firewall/{networks,ports} /etc/berlin/
+        rmdir /tmp/firewall
+
+
+        # Execute the scripts
+        /usr/sbin/recreate-firewall
+        ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
+        /etc/init.d/networking restart
+        service dhcp3-server restart
+    
+
+    else
+        # This is an upgrade from an older version.
+        
+        echo "Upgrading firewall rules..."
+        /usr/sbin/recreate-firewall
+    fi
+
+        
+    ;;
+esac
 
 
 #DEBHELPER#
