@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 
     Copyright (C) 2011  Thijs van Dijk
