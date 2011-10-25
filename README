@@ -1,15 +1,20 @@
-Vuurmuur is a collection of firewall configuration scripts.
+Berlin is a collection of firewall configuration scripts.
 
-Vuurmuur is an attempt to make my personal firewall config scripts available to
-the public. The word "vuurmuur" is a Dutch translation of "fire-wall."
+
+
+##      OVERVIEW
+
+Berlin is an attempt to make my personal firewall config scripts available to
+the public. The project, which in its early days was known to few as "vuurmuur"
+is named after another historic wall.
 
 Key features:
  -  Easily deployable NAT firewall
  -  Multiple subnets
- -  IP based advertisement filtering
+ -  Advertisement filtering
 
 
-Vuurmuur is available under the terms of the GNU General Public License version
+Berlin is available under the terms of the GNU General Public License version
 3, or, at your discretion, any later version. See the file COPYING for details.
 
 
@@ -22,6 +27,9 @@ Optional:
  -  mod_proxy_http for more advanced ad filtering
  -  PHP5 for even more advanced ad filtering
 
+
+
+##      INSTALLATION
 
 To set up, verify every network interface is installed and working correctly.
 After that, run  helper-scripts/deploy.sh  as root, and follow the on-screen
@@ -51,9 +59,11 @@ Below is a list of each configuration file, and its function.
                 Hosts on the whitelist will not get blocked; hosts on the grey-
                 list are filtered according to the corresponding PHP file.
     
-    /etc/vuurmuur/
+    /etc/berlin/
       networks/*
                 All internal subnets are defined here
+      ports/*
+                Rules for forwarding ports. See dedicated section below.
       if-config
                 Configuration concerning the installed NICs
       ad-hosts
@@ -68,3 +78,29 @@ Below is a list of each configuration file, and its function.
                 connection to any IP not on this list, effectively preventing
                 them from participating in any spam bot network.
 
+
+
+##      PORT FORWARDING
+
+By default, berlin blocks all incoming traffic, but this may not always be
+desirable. For instance, there may be a public HTTP server on the router, or
+somewhere on the network. Or you may want the router to act as a SSH gateway to
+the rest of the network.
+
+In such cases, it's necessary to 'open ports' to the public.
+If traffic should be accepted locally, this can be achieved using the text-
+based UI provided. Press the [s] key, and enter the port number.
+
+However, if traffic to an external port should be forwarded to a host on the
+local net, or if berlin's configuration is modified from a script, it'll be
+necessary to edit the appropriate files by hand.
+
+To open a port, create a file in the  /etc/berlin/ports/  folder with the
+port number as its name. After that:
+ -  To accept all traffic on said port locally, just leave the file empty.
+ -  To forward traffic to a specific host in the local network, enter its IP 
+    address in the file.
+ -  To forward traffic to a different port on a host, enter both an IP address
+    and a port number in the form
+                aaa.bbb.ccc.ddd:xxxx
+    where xxxx is the destination port on the target machine.

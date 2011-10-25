@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+  configure)
+    # Take extra configuration steps
+    :
+
+    if [ "$2" == "" ]
+    then
+        # No previous version was installed; this is a fresh installation.
+        
+        
+        # Enable the virtualhosts
+        a2ensite 000-adblock
+
+        # Create a new log file for the adblock CGI
+        touch /var/log/adblock.log
+        chown www-data:www-data /var/log/adblock.log
+
+        # Enable required modules
+        a2enmod rewrite
+        a2enmod proxy
+        a2enmod proxy_http
+
+        # Restart apache
+        service apache2 restart
+
+
+
+        # Generate configuration files
+        cd /usr/share/berlin/bin
+        ./generate-config.py --blind-faith
+
+
+
+        # Yes, I blindly trust the above script.
+        mv /tmp/firewall/dhcpd.conf /etc/dhcp3/dhcpd.conf
+        mv /tmp/firewall/interfaces /etc/network/interfaces
+        mv /tmp/firewall/if-config /etc/berlin/if-config
+        rm -rf /etc/firewall.d /etc/vuurmuur /etc/berlin/networks
+        rm -rf /etc/berlin/{networks,ports} 
+        mv /tmp/firewall/{networks,ports} /etc/berlin/
+        rmdir /tmp/firewall
+
+
+        # Execute the scripts
+        recreate-firewall
+        ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
+        if which invoke-rc.d >/dev/null 2>&1; then
+            invoke-rc.d networking restart
+        else
+            /etc/init.d/networking restart
+        fi
+
+        /etc/init.d/networking restart
+        service dhcp3-server restart
+    
+
+    else
+        # This is an upgrade from an older version.
+        
+        # Re-enable the virtualhosts
+        a2ensite 000-adblock
+        invoke-rc.d apache2 reload
+        if [ ! -e /etc/network/if-pre-up.d/berlin-firewall ]
+        then
+            ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
+        fi
+        
+        echo "Upgrading firewall rules..."
+        recreate-firewall
+    fi
+
+        
+    ;;
+esac
+
+
+#DEBHELPER#

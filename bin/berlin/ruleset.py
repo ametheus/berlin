@@ -3,14 +3,14 @@
 
     Copyright (C) 2011  Thijs van Dijk
 
-    This file is part of vuurmuur.
+    This file is part of berlin.
 
-    Vuurmuur is free software: you can redistribute it and/or modify
+    Berlin is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Vuurmuur is distributed in the hope that it will be useful,
+    Berlin is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     file "COPYING" for details.
@@ -18,6 +18,7 @@
 """
 
 import os,subprocess
+from collections import defaultdict
 
 class Ruleset:
     """A collection of iptables rules.
@@ -26,8 +27,19 @@ class Ruleset:
     stack."""
     
     all_chains = dict({})
+    table_description = defaultdict(lambda s: \
+            'I have no idea what the table `{0}` does.'.format(s))
     
     def __init__(self):
+        
+        # Initialize descriptions for default tables.
+        self.table_description['nat'] = \
+                'The nat table is used mainly for Network Address Translation.\n' + \
+                'Packets get their IP addresses altered according to these rules.'
+        self.table_description['filter'] = \
+                'The `filter` table is the main venue for deciding whether or not\n' + \
+                'a packet is desired.'
+        
         self.reset()
     
     def reset(self):
@@ -60,14 +72,27 @@ class Ruleset:
             self.all_chains[tb] = dict()
         
         # Initialize default chains
-        self.new_chain('PREROUTING', 'nat',      'ACCEPT')
-        self.new_chain('POSTROUTING','nat',      'ACCEPT')
-        self.new_chain('OUTPUT',     'nat',      'ACCEPT')
-        self.new_chain('INPUT',      'filter',   'DROP')
-        self.new_chain('FORWARD',    'filter',   'DROP')
-        self.new_chain('OUTPUT',     'filter',   'DROP')
+        self.new_chain('PREROUTING', 'nat',      'ACCEPT',
+                'The PREROUTING chain is used to alter packets as soon as\n' + \
+                'they get in to the berlin firewall.')
+        self.new_chain('OUTPUT',     'nat',      'ACCEPT',
+                'The OUTPUT chain is used for altering locally generated\n' + \
+                'packets before they get to the routing decision.')
+        self.new_chain('POSTROUTING','nat',      'ACCEPT',
+                'the POSTROUTING chain is used to alter packets just as\n' + \
+                'they are about to leave the berlin firewall.')
+        
+        self.new_chain('FORWARD',    'filter',   'DROP',
+                'The FORWARD chain is used on all non-locally generated\n' + \
+                'packets that are not destined for the berlin firewall itself.')
+        self.new_chain('INPUT',      'filter',   'DROP',
+                'The INPUT chain is used on all packets that are destined\n' + \
+                'for the berlin wall, both from the internal network and the\n' + \
+                'public internet.')
+        self.new_chain('OUTPUT',     'filter',   'DROP',
+                'The OUTPUT chain is used for locally generated packets.')
     
-    def new_chain(self,chain,table='filter',policy='DROP'):
+    def new_chain(self,chain,table='filter',policy='DROP', description=None):
         """Add a new chain.
         
         Add a new chain {chain} to {table} with default policy {policy}.
@@ -94,10 +119,17 @@ class Ruleset:
         if not table in self.all_chains:
             raise Exception( "Invalid table {0}. Keys: {1}".format(
                     table,self.all_chains.keys()) )
+        
+        if not description:
+            # No description given, so set a default one.
+            description = ('The function of the chain `{0}` is thought to be\n' + \
+                    'self-explanatory.').format(chain)
+        
         if not chain in self.all_chains[table]:
             self.all_chains[table][chain] = dict({
-                'policy': policy,
-                'rules': []
+                    'policy': policy,
+                    'rules': [],
+                    'description': description
             })
         else:
             raise Exception("Chain {0} in table {1} already exists.")
@@ -155,7 +187,7 @@ class Ruleset:
         
         """
         
-        locations = ['/etc/vuurmuur/','/etc/firewall.d/config/','']
+        locations = ['/etc/berlin/','/etc/vuurmuur/','/etc/firewall.d/config/','']
         files = sum([[L+F for F in filenames] for L in locations],[])
         f = subprocess.Popen(
                 ['cat', '/dev/null'] + files,
@@ -218,15 +250,29 @@ class Ruleset:
         
         >>> f = open( '/tmp/doctest_output_chains', 'r' )
         >>> print f.read()
+        <BLANKLINE>
+        ...
+        ###     
+        ...
+        ###     
+        <BLANKLINE>
         *nat
         :PREROUTING ACCEPT [0:0]
         :POSTROUTING ACCEPT [0:0]
         :OUTPUT ACCEPT [0:0]
         COMMIT
+        <BLANKLINE>
+        ...
+        ###     
+        ...
+        ###     
+        <BLANKLINE>
         *filter
         :INPUT DROP [0:0]
         :FORWARD DROP [0:0]
         :OUTPUT DROP [0:0]
+        <BLANKLINE>
+        <BLANKLINE>
         COMMIT
         <BLANKLINE>
         >>> f.close()
@@ -242,6 +288,11 @@ class Ruleset:
         
         for tb in ['nat','filter']:
             table = self.all_chains[tb]
+            
+            # Write down what the table does
+            f.write('\n\n\n\n###     \n###     {0}\n###     \n\n'.format(
+                    self.table_description[tb].replace('\n','\n###     ') ))
+            
             f.write('*{0}\n'.format(tb))
             
             # Write the chain declarations for all buitin chains
@@ -257,6 +308,11 @@ class Ruleset:
             
             # Write all the rules for the user-defined chains
             for ch,chain in table.items():
+                if len(chain['rules']) > 0:
+                    # Write the description first.
+                    f.write('\n\n##  {0}\n\n'.format(
+                            chain['description'].replace('\n','\n##  ') ))
+                
                 for r in chain['rules']:
                     if not r:
                         f.write('\n')
@@ -266,7 +322,7 @@ class Ruleset:
                         f.write('-A {0} {1}\n'.format(ch,r))
             
             # Commit everything.
-            f.write('COMMIT\n')
+            f.write('\n\nCOMMIT\n')
         
         f.close()
     
@@ -274,9 +330,12 @@ class Ruleset:
 
 
 if __name__ == '__main__':
-    import os,doctest
-    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    import doctest
+    fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
     
+    import os,sys
     os.unlink('/tmp/doctest_IP_addresses_from_files')
     os.unlink('/tmp/doctest_create_filter')
     os.unlink('/tmp/doctest_output_chains')
+    
+    sys.exit( fail )

@@ -3,14 +3,14 @@
 
     Copyright (C) 2011  Thijs van Dijk
 
-    This file is part of vuurmuur.
+    This file is part of berlin.
 
-    Vuurmuur is free software: you can redistribute it and/or modify
+    Berlin is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Vuurmuur is distributed in the hope that it will be useful,
+    Berlin is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     file "COPYING" for details.
@@ -23,7 +23,7 @@ KW = '205.196.209.62'
 from ruleset import Ruleset
 from output import debug
 
-class Vuurmuur(Ruleset):
+class Berlin(Ruleset):
     
     malware_blocked = False
     ads_blocked = False
@@ -61,7 +61,7 @@ class Vuurmuur(Ruleset):
         
         Examples:
         
-        >>> V = Vuurmuur()
+        >>> V = Berlin()
         >>> from network_config import Config
         >>> C = Config()
         >>> V.import_config(C)
@@ -74,11 +74,6 @@ class Vuurmuur(Ruleset):
         debug( 0, "Generating rules..." )
         
         self.reset()
-        
-        self.append_chain('INPUT',None)
-        self.append_chain('INPUT',None)
-        self.append_chain('INPUT','#   INPUT: Incoming traffic from various interfaces')
-        self.append_chain('INPUT',None)
         
         self.append_chain('INPUT','#Loopback interface is valid' )
         self.append_chain('INPUT','-i lo -j ACCEPT')
@@ -138,11 +133,6 @@ class Vuurmuur(Ruleset):
         self.append_chain('INPUT','# Reject everything else.' )
         self.append_chain('INPUT','-j REJECT --reject-with icmp-port-unreachable')
         
-        self.append_chain('OUTPUT',None)
-        self.append_chain('OUTPUT',None)
-        self.append_chain('OUTPUT','#   OUTPUT: Outgoing traffic from various interfaces #' )
-        self.append_chain('OUTPUT',None)
-        
         self.append_chain('OUTPUT','# Workaround bug in netfilter' )
         self.append_chain('OUTPUT','-p icmp -m state --state INVALID -j DROP')
         
@@ -190,13 +180,6 @@ class Vuurmuur(Ruleset):
         self.append_chain('OUTPUT','-j REJECT --reject-with icmp-port-unreachable')
         
         
-        
-        
-        
-        self.append_chain('FORWARD',None)
-        self.append_chain('FORWARD',None)
-        self.append_chain('FORWARD','# Packet Forwarding / NAT' )
-        self.append_chain('FORWARD',None)
         
         
         
@@ -307,4 +290,6 @@ class Vuurmuur(Ruleset):
 
 if __name__ == '__main__':
     import doctest
-    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    import sys
+    sys.exit( fail )

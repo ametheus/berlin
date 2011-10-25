@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+  remove|deconfigure)
+    :
+
+    # Leave iptables rules in place
+    if [ -f /etc/default/iptables ]
+    then
+        cp /etc/default/iptables{,.old}
+    fi
+    cp /etc/berlin/rules /etc/default/iptables
+
+
+    # Remove apache site
+    a2dissite 000-adblock
+    service apache2 reload
+
+    # Remove autostart links
+    rm -f /etc/network/if-pre-up.d/berlin-firewall
+    
+    ;;
+  upgrade)
+    :
+
+    # Nothing to be done here.
+    ;;
+  failed-upgrade)
+    :
+
+    # Nothing to be done here either
+    ;;
+esac
+
+    
+
+#DEBHELPER#

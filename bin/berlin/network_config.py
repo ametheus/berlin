@@ -3,14 +3,14 @@
 
     Copyright (C) 2011  Thijs van Dijk
 
-    This file is part of vuurmuur.
+    This file is part of berlin.
 
-    Vuurmuur is free software: you can redistribute it and/or modify
+    Berlin is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Vuurmuur is distributed in the hope that it will be useful,
+    Berlin is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     file "COPYING" for details.
@@ -29,7 +29,7 @@ def open_file( filename, mode ):
         # This is an absolute path, so just open that file.
         return open( filename, mode )
     
-    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
+    locations = ['/etc/berlin/','/etc/vuurmuur/','/etc/firewall.d/config/']
     
     for L in locations:
         fn = L + filename
@@ -51,7 +51,7 @@ def list_directory( dir ):
         except OSError:
             return []
     
-    locations = ['/etc/vuurmuur/','/etc/firewall.d/config/']
+    locations = ['/etc/berlin/','/etc/vuurmuur/','/etc/firewall.d/config/']
     
     for L in locations:
         dn = L + dir
@@ -148,13 +148,13 @@ def null_callback(s,o):
     print s
 
 class Config:
-    """Complete network configuration for vuurmuur."""
+    """Complete network configuration for berlin."""
     
     Interfaces = None
     ifconfig = None
     
-    local_services = [ 22, 80, 443, 19360 ] # TODO: implement
-    network_services = [ (22222,'192.168.144.2:22') ] # TODO: implement
+    local_services = []
+    network_services = []
     
     def __init__( self, network_devices=None ):
         """Parses the config directories into a Config class."""
@@ -174,7 +174,10 @@ class Config:
         
         # Parse local services
         if not 'undefined' in self.ifconfig['local services']:
-            self.local_services = [ int(p) for p in self.ifconfig['local services'] ]
+            self.local_services += [ int(p) for p in self.ifconfig['local services'] ]
+        for portfile in list_directory('ports'):
+            self.open_port(portfile)
+        
         
         # Get a list of subnets
         nets = list_directory('networks')
@@ -193,6 +196,33 @@ class Config:
         
         self.tion = ( self.Interfaces[0], None, None )
     
+    def open_port(self, portfile):
+        """Parse an 'open port' file.
+        
+        Parse an 'open port' file, and modify  local_services  and
+        network_services  accordingly. 'Open port' files are located in the
+        ports/  directory in the configuuration file root, and are named after
+        the port in question. They can either be empty, indicating the router
+        should accept traffic at said port itself, or contain an IP address
+        and/or port in the form 'p.q.r.s:t', indicating that all traffic should
+        be forwarded to that address and port.
+        """
+        
+        try:
+            f = open_file("ports/" + portfile,'r')
+            c = f.read().strip()
+            f.close()
+            port = int(portfile)
+        except IOError, ValueError: 
+            print "Error parsing portfile {0}".format(portfile)
+            return
+        
+        if len(c) > 0:
+            # TODO: Some form of validation. Probably a regex
+            self.network_services.append( (port, c) )
+        else:
+            self.local_services.append( port )
+    
     def Export( self ):
         """Writes back all config files into /tmp/firewall/."""
         
@@ -202,13 +232,23 @@ class Config:
             'rm', '-rf', '/tmp/firewall'
         ])
         os.mkdir( '/tmp/firewall' )
-        os.mkdir( '/tmp/firewall/networks' )
+        
+        # Export special configuration files
         file_put_contents( '/tmp/firewall/if-config', self.if_config_file() )
         file_put_contents( '/tmp/firewall/interfaces', self.interfaces_file() )
         file_put_contents( '/tmp/firewall/dhcpd.conf', self.dhcp_conf() )
         
+        # Export all networks
+        os.mkdir( '/tmp/firewall/networks' )
         for I in self.Interfaces:
             I.Export( '/tmp/firewall/networks' )
+        
+        # Export all open or forwarded ports
+        os.mkdir( '/tmp/firewall/ports' )
+        for port in self.local_services:
+            file_put_contents( '/tmp/firewall/ports/' + str(int(port)), '' )
+        for port,host in self.network_services:
+            file_put_contents( '/tmp/firewall/ports/' + str(int(port)), host )
     
     
     def if_config_file( self ):
@@ -225,7 +265,6 @@ class Config:
             [ d.name        for d in self.Interfaces if d.wan_interface and d.enabled ]
         rv['internal interface'] = \
             [ d.name        for d in self.Interfaces if not d.wan_interface and d.enabled ]
-        rv['local services'] = [ str(i) for i in self.local_services ]
         
         return unparse_file( rv )
     
@@ -367,7 +406,8 @@ class Iface:
                 self.subnets.append( N )
                 nets.remove( net )
         
-        ifc = subprocess.Popen( ['/sbin/ifconfig', name], stdout = subprocess.PIPE )
+        ifc = subprocess.Popen( ['/sbin/ifconfig', name], stdout = subprocess.PIPE, stderr = subprocess.PIPE )
+        ifc.stderr.close()
         pipe = subprocess.Popen( [ '/bin/sh', '-c',
             'grep -oP "inet addr:(([0-9]+\.){3}[0-9]+)" | cut -d: -f2'
         ], stdin = ifc.stdout, stdout = subprocess.PIPE )
@@ -709,4 +749,5 @@ class Host:
 if __name__ == '__main__':
     
     import doctest
-    doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
+    sys.exit( fail )

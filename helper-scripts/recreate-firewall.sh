@@ -3,24 +3,24 @@
 #
 #   Copyright (C) 2011  Thijs van Dijk
 #
-#   This file is part of vuurmuur.
+#   This file is part of berlin.
 #
-#   Vuurmuur is free software: you can redistribute it and/or modify
+#   Berlin is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
 #
-#   Vuurmuur is distributed in the hope that it will be useful,
+#   Berlin is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   file "COPYING" for details.
 #
 
 
-cd /usr/share/vuurmuur/bin
+cd /usr/share/berlin/bin
 python rules.py
 
 
-/sbin/iptables-restore < /etc/vuurmuur/rules
-mkdir -p /etc/vuurmuur/old.rules
-cp /etc/vuurmuur/rules "/etc/vuurmuur/old.rules/rules-$(date '+%F %T')"
+/sbin/iptables-restore < /etc/berlin/rules
+mkdir -p /etc/berlin/old.rules
+cp /etc/berlin/rules "/etc/berlin/old.rules/rules-$(date '+%F %T')"
