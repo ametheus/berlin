@@ -24,7 +24,7 @@ install:
 	install -m 0644 apache/filtered/*    $(DESTDIR)/etc/berlin/apache/filtered/
 	install -m 0644 apache/*.*           $(DESTDIR)/etc/berlin/apache/
 	
-	chmod +x $(DESTDIR)/etc/berlin/apache/cgi.sh
+	chmod +x $(DESTDIR)/etc/berlin/apache/blocked.py
 	
 	
 	mkdir -p $(DESTDIR)/etc/apache2/sites-available

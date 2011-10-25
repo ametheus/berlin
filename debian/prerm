@@ -16,11 +16,10 @@ case "$1" in
 
     # Remove apache site
     a2dissite 000-adblock
-    rm /etc/apache2/sites-available/000-adblock
     service apache2 reload
 
     # Remove autostart links
-    rm /etc/network/if-pre-up.d/berlin-firewall
+    rm -f /etc/network/if-pre-up.d/berlin-firewall
     
     ;;
   upgrade)

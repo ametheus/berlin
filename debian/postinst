@@ -61,6 +61,14 @@ case "$1" in
     else
         # This is an upgrade from an older version.
         
+        # Re-enable the virtualhosts
+        a2ensite 000-adblock
+        invoke-rc.d apache2 reload
+        if [ ! -e /etc/network/if-pre-up.d/berlin-firewall ]
+        then
+            ln -s /usr/sbin/restore-firewall /etc/network/if-pre-up.d/berlin-firewall
+        fi
+        
         echo "Upgrading firewall rules..."
         recreate-firewall
     fi
