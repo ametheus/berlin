@@ -56,6 +56,67 @@ class Berlin(Ruleset):
             table='nat'
         )
     
+    def qos_chains( self ):
+        """Generate chains needed for QoS.
+        
+        There are 7 priority levels in all. They are, in descending order:
+        
+        1:  Low volume connections that benefit from low delay, such as dns,
+            icmp, irc, quake3, minecraft, and packets with the SYN flag.
+            These packets have the highest priority, but there's a speed cap
+            so as not to smother everything else.
+        2:  SSH traffic. Very low latency, unlimited speed.
+        3:  Packets with the Maximize-Throughput bit set, and any traffic from
+            the local server itself.
+        4:  HTTP/HTTPS requests, both from network clients to the internet, 
+            and from the internet to a local webserver.
+        5:  Network hosts that require special priority treatment.
+        6:  E-mail traffic and packets with Minimize-Cost TOS bit set.
+        7:  Everything not in any of the above categories."""
+        
+        self.new_chain('PREROUTING', 'mangle', 'ACCEPT',
+                'Assign priorities to different packets according to fixed, simple rules.')
+        self.new_chain('OUTPUT', 'mangle', 'ACCEPT',
+                'Assign priorities to different packets according to fixed, simple rules.')
+        
+        
+        self.append_chain('PREROUTING','-p icmp -j MARK --set-mark 0x1',                                    table='mangle')
+        self.append_chain('PREROUTING','-p icmp -j RETURN',                                                 table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j MARK --set-mark 0x1',  table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --tcp-flags SYN,RST,ACK SYN -j RETURN',               table='mangle')
+        self.append_chain('PREROUTING','-m tos --tos Minimize-Delay -j MARK --set-mark 0x1',                table='mangle')
+        self.append_chain('PREROUTING','-m tos --tos Minimize-Delay -j RETURN',                             table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 194,25565 -j MARK --set-mark 0x1',     table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 194,25565 -j RETURN',                  table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 194,25565 -j MARK --set-mark 0x1',     table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 194,25565 -j RETURN',                  table='mangle')
+        
+        self.append_chain('PREROUTING','-p tcp -m tcp --sport 22 -j MARK --set-mark 0x2',                   table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --sport 22 -j RETURN',                                table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --dport 22 -j MARK --set-mark 0x2',                   table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --dport 22 -j RETURN',                                table='mangle')
+        
+        self.append_chain('PREROUTING','-m tos --tos Maximize-Throughput -j MARK --set-mark 0x3',           table='mangle')
+        self.append_chain('PREROUTING','-m tos --tos Maximize-Throughput -j RETURN',                        table='mangle')
+        self.append_chain('OUTPUT',    '-j MARK --set-mark 0x3',                                            table='mangle')
+        self.append_chain('OUTPUT',    '-j RETURN',                                                         table='mangle')
+        
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 80,443,8106 -j MARK --set-mark 0x4',   table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 80,443,8106 -j RETURN',                table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 80,443,8106 -j MARK --set-mark 0x4',   table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 80,443,8106 -j RETURN',                table='mangle')
+        
+        #  ( Priority 5 is currently not implemented )
+        
+        self.append_chain('PREROUTING','-m tos --tos Minimize-Cost -j MARK --set-mark 0x6',                 table='mangle')
+        self.append_chain('PREROUTING','-m tos --tos Minimize-Cost -j RETURN',                              table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 25,110,465,587,993,994 -j MARK --set-mark 0x6',table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --dports 25,110,465,587,993,994 -j RETURN',     table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 25,110,465,587,993,994 -j MARK --set-mark 0x6',table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m multiport --sports 25,110,465,587,993,994 -j RETURN',     table='mangle')
+        
+        self.append_chain('PREROUTING','-j MARK --set-mark 0x7',                                            table='mangle')
+    
     def import_config( self, C ):
         """Create a NAT firewall using the settings from {C}.
         
@@ -74,6 +135,8 @@ class Berlin(Ruleset):
         debug( 0, "Generating rules..." )
         
         self.reset()
+        if len([ I for I in Ext if I.qos_bandwidth ]):
+            self.qos_chains()
         
         self.append_chain('INPUT','#Loopback interface is valid' )
         self.append_chain('INPUT','-i lo -j ACCEPT')
