@@ -52,6 +52,8 @@ def create_qos_qdisc( C, fake=False ):
         ifn = ifc.name
         
         rules += [
+            ['tc','qdisc','add','dev',ifn,'root'],
+            
             ['tc','qdisc','add','dev',ifn,'root',         'handle', '1:',  'htb','default','15'],
             
             ['tc','class','add','dev',ifn,'parent','1:',  'classid','1:1', 'htb','rate',k(  ceil),'ceil',k(ceil)           ],
@@ -74,7 +76,7 @@ def create_qos_qdisc( C, fake=False ):
     
     if not fake:
         for R in rules:
-            subprocess.call( R ) 
+            subprocess.call( R, stderr = subprocess.PIPE )
     else:
         for R in rules:
             print ' '.join(R)
