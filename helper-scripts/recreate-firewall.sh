@@ -19,12 +19,13 @@
 set -e
 cd /usr/share/berlin/bin
 
-# Generate iptables rules
+# Generate iptables/tc rules
 python rules.py
 
 # Keep the old ones for nostalgic purposes
 mkdir -p /etc/berlin/old.rules
-cp /etc/berlin/rules "/etc/berlin/old.rules/rules-$(date '+%F %T')"
+cp /etc/berlin/rules     "/etc/berlin/old.rules/rules-$(date '+%F %T')"
+cp /etc/berlin/qos-qdisc "/etc/berlin/old.rules/qos-qdisc-$(date '+%F %T')"
 
 
 # Apply the rules to our system

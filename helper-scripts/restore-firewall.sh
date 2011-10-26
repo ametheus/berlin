@@ -32,3 +32,8 @@ modprobe ip_nat_ftp
 # Load the iptables rules
 iptables-restore /etc/berlin/rules
 
+# Load the tc trees, if present
+if [ -f /etc/berlin/qos-qdisc ]
+then
+    tc -b /etc/berlin/qos-qdisc
+fi

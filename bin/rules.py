@@ -19,6 +19,7 @@
 
 from getpass import getuser
 from berlin import Config, debug, Berlin
+from qos import create_qos_qdisc
 import subprocess
 
 debug( 0, "Detecting configuration... ", False )
@@ -29,4 +30,10 @@ debug( 0, "Constructing iptables rules..." )
 V = Berlin()
 V.import_config( C )
 V.output_chains( '/etc/berlin/rules' if getuser() == 'root' else '/tmp/rules' )
+debug( 0, "Done." )
+
+debug( 0, "Constructing QoS-capable qdisc's..." )
+qf = open( '/etc/berlin/qos-qdisc' if getuser() == 'root' else '/tmp/qos-qdisc', 'w' )
+create_qos_qdisc( C, file=qf )
+qf.close()
 debug( 0, "Done." )

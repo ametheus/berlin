@@ -20,7 +20,7 @@
 import subprocess
 from output import debug
 
-def create_qos_qdisc( C, fake=False ):
+def create_qos_qdisc( C, file=False ):
     """Create a QoS qdisc
     
     Create a qdisc (Queueing Discipline) capable of simple rule-based Quality of 
@@ -43,7 +43,8 @@ def create_qos_qdisc( C, fake=False ):
     
     # Remove tc rules for all interfaces
     for I in C.Interfaces:
-        rules += [['tc','qdisc','del','dev',I.name,'root']]
+        rules += [['qdisc','del','dev',I.name,'root']]
+    rules += [[]]
     
     # Add a simple priority tree for each QoS-enabled external interface
     for ifc in ifaces:
@@ -57,29 +58,29 @@ def create_qos_qdisc( C, fake=False ):
         ifn = ifc.name
         
         rules += [
-            ['tc','qdisc','add','dev',ifn,'root',         'handle', '1:',  'htb','default','15'],
+            ['qdisc','add','dev',ifn,'root',         'handle', '1:',  'htb','default','15'],
             
-            ['tc','class','add','dev',ifn,'parent','1:',  'classid','1:1', 'htb','rate',k(  ceil),'ceil',k(ceil)           ],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:10','htb','rate',k(8*unit),'ceil',k(ceil),'prio','0'],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:11','htb','rate',k(8*unit),'ceil',k(ceil),'prio','1'],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:12','htb','rate',k(2*unit),'ceil',k(ceil),'prio','2'],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:13','htb','rate',k(2*unit),'ceil',k(ceil),'prio','2'],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:14','htb','rate',k(1*unit),'ceil',k(ceil),'prio','3'],
-            ['tc','class','add','dev',ifn,'parent','1:1', 'classid','1:15','htb','rate',k(3*unit),'ceil',k(ceil),'prio','3'],
+            ['class','add','dev',ifn,'parent','1:',  'classid','1:1', 'htb','rate',k(  ceil),'ceil',k(ceil)           ],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:10','htb','rate',k(8*unit),'ceil',k(ceil),'prio','0'],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:11','htb','rate',k(8*unit),'ceil',k(ceil),'prio','1'],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:12','htb','rate',k(2*unit),'ceil',k(ceil),'prio','2'],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:13','htb','rate',k(2*unit),'ceil',k(ceil),'prio','2'],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:14','htb','rate',k(1*unit),'ceil',k(ceil),'prio','3'],
+            ['class','add','dev',ifn,'parent','1:1', 'classid','1:15','htb','rate',k(3*unit),'ceil',k(ceil),'prio','3'],
             
-            ['tc','qdisc','add','dev',ifn,'parent','1:12','handle', '120:','sfq','perturb','10'],
-            ['tc','qdisc','add','dev',ifn,'parent','1:13','handle', '130:','sfq','perturb','10'],
-            ['tc','qdisc','add','dev',ifn,'parent','1:14','handle', '140:','sfq','perturb','10'],
-            ['tc','qdisc','add','dev',ifn,'parent','1:15','handle', '150:','sfq','perturb','10']
+            ['qdisc','add','dev',ifn,'parent','1:12','handle', '120:','sfq','perturb','10'],
+            ['qdisc','add','dev',ifn,'parent','1:13','handle', '130:','sfq','perturb','10'],
+            ['qdisc','add','dev',ifn,'parent','1:14','handle', '140:','sfq','perturb','10'],
+            ['qdisc','add','dev',ifn,'parent','1:15','handle', '150:','sfq','perturb','10'],
+            []
         ]
     
     if len(rules) == 0:
         debug( 0, 'No rules to implement; QoS disabled' )
         return
     
-    if not fake:
-        for R in rules:
-            subprocess.call( R, stderr = subprocess.PIPE )
+    if file:
+        file.writelines([ ' '.join(R) for R in rules ])
     else:
         for R in rules:
             print ' '.join(R)
@@ -95,7 +96,7 @@ if __name__ == '__main__':
         from getpass import getuser
         
         C = Config()
-        create_qos_qdisc( C, (getuser() != 'root') )
+        create_qos_qdisc( C )
     else:
         import doctest
         fail, total = doctest.testmod( optionflags = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE )
