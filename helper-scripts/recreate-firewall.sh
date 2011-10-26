@@ -16,11 +16,16 @@
 #   file "COPYING" for details.
 #
 
-
+set -e
 cd /usr/share/berlin/bin
+
+# Generate iptables rules
 python rules.py
 
-
-/sbin/iptables-restore < /etc/berlin/rules
+# Keep the old ones for nostalgic purposes
 mkdir -p /etc/berlin/old.rules
 cp /etc/berlin/rules "/etc/berlin/old.rules/rules-$(date '+%F %T')"
+
+
+# Apply the rules to our system
+restore-firewall
