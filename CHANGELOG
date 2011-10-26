@@ -1,0 +1,43 @@
+2011-06-13 Thijs van Dijk                                                 v0.3
+        * Started the berlin firewall project, then known as `vuurmuur'
+        * Imported my previous version, and released under GPLv3
+        * Translated the default content
+        * Added lots of internal documentation
+
+2011-06-14 Thijs van Dijk
+        * Relocated the configuration files in a reverse compatible manner
+        * The deploy script now creates an empty log file if none exists
+        * Added more Doctests
+
+2011-06-15 Thijs van Dijk
+        * Separated code for the UI, managing iptables, and generating custom
+        rule chains
+
+2011-06-16 Thijs van Dijk
+        * Added new-style port opening/forwarding
+
+2011-06-17 Thijs van Dijk
+        * Renamed project to `berlin'
+
+2011-06-20 Thijs van Dijk
+        * Added table and chain descriptions to the output
+
+2011-10-23 Thijs van Dijk
+        * Added Makefile capable of generating a debian package
+
+2011-10-24 Thijs van Dijk                                                 v0.4a1
+        * Deprecated deploy.sh in favour of maintainer scripts
+        * Added script to run all doctests at once
+        * Updated doctests
+
+2011-10-25 Thijs van Dijk                                                 v0.4
+        * Replaced the old bash CGI with a python one, eliminating the 
+        (undocumented) dependency on mysql5.1-server to provide 
+        /usr/bin/replace.
+        * Released Makefile under GPLv3
+
+2011-10-25 Thijs van Dijk
+        * Started working on next iteration
+
+2011-10-26 Thijs van Dijk
+        * The resulting package kept being rejected by ubuntu. D'oh!

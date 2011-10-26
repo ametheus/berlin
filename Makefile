@@ -28,6 +28,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/share/berlin/bin/berlin
 	mkdir -p $(DESTDIR)/etc/berlin/apache/filtered
 	mkdir -p $(DESTDIR)/usr/sbin
+	mkdir -p $(DESTDIR)/usr/share/doc/berlin
 	
 	install -m 0755 bin/*.py           $(DESTDIR)/usr/share/berlin/bin/
 	install -m 0755 bin/berlin/*.py    $(DESTDIR)/usr/share/berlin/bin/berlin/
@@ -40,6 +41,9 @@ install:
 	install -m 0644 apache/*.*           $(DESTDIR)/etc/berlin/apache/
 	
 	chmod +x $(DESTDIR)/etc/berlin/apache/blocked.py
+	
+	gzip -9 -c CHANGELOG      > $(DESTDIR)/usr/share/doc/berlin/changelog.gz
+	install -m 0644 README      $(DESTDIR)/usr/share/doc/berlin/
 	
 	
 	mkdir -p $(DESTDIR)/etc/apache2/sites-available
