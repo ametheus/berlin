@@ -1,5 +1,5 @@
 Source: berlin
-Section: network
+Section: net
 Priority: optional
 Maintainer: Thijs van Dijk <ametheus@gmail.com>
 Build-Depends: debhelper (>= 7.0.50~)
