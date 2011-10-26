@@ -80,7 +80,7 @@ def create_qos_qdisc( C, file=False ):
         return
     
     if file:
-        file.writelines([ ' '.join(R) for R in rules ])
+        file.writelines([ ' '.join(R) + '\n' for R in rules ])
     else:
         for R in rules:
             print ' '.join(R)

@@ -19,7 +19,7 @@
 
 from getpass import getuser
 from berlin import Config, debug, Berlin
-from qos import create_qos_qdisc
+from berlin.qos import create_qos_qdisc
 import subprocess
 
 debug( 0, "Detecting configuration... ", False )

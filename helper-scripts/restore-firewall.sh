@@ -16,7 +16,6 @@
 #   file "COPYING" for details.
 #
 
-set -e
 
 
 # Restart BIND, just for the heck of it
@@ -35,5 +34,7 @@ iptables-restore /etc/berlin/rules
 # Load the tc trees, if present
 if [ -f /etc/berlin/qos-qdisc ]
 then
-    tc -b /etc/berlin/qos-qdisc
+    tc -force -batch /etc/berlin/qos-qdisc 2>/dev/null
 fi
+
+exit 0
