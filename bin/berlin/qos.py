@@ -33,7 +33,6 @@ def create_qos_qdisc( C, fake=False ):
     
     if len(ifaces) == 0:
         debug( 0, 'No external interfaces found' )
-        return
     
     def k( x ):
         """Format a bandwidth of x kbit/s"""
@@ -41,6 +40,12 @@ def create_qos_qdisc( C, fake=False ):
         return '{0}kbit'.format(int(x))
     
     rules = []
+    
+    # Remove tc rules for all interfaces
+    for I in C.Interfaces:
+        rules += [['tc','qdisc','del','dev',I.name,'root']]
+    
+    # Add a simple priority tree for each QoS-enabled external interface
     for ifc in ifaces:
         if not ifc.qos_bandwidth: continue
         
@@ -52,8 +57,6 @@ def create_qos_qdisc( C, fake=False ):
         ifn = ifc.name
         
         rules += [
-            ['tc','qdisc','add','dev',ifn,'root'],
-            
             ['tc','qdisc','add','dev',ifn,'root',         'handle', '1:',  'htb','default','15'],
             
             ['tc','class','add','dev',ifn,'parent','1:',  'classid','1:1', 'htb','rate',k(  ceil),'ceil',k(ceil)           ],
