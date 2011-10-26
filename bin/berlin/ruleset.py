@@ -27,8 +27,8 @@ class Ruleset:
     stack."""
     
     all_chains = dict({})
-    table_description = defaultdict(lambda s: \
-            'I have no idea what the table `{0}` does.'.format(s))
+    table_description = defaultdict(lambda: \
+            'I have no idea what this table does.')
     
     def __init__(self):
         
@@ -56,10 +56,10 @@ class Ruleset:
         2
         >>> len(R.all_chains['filter'].items())
         3
-        >>> len(R.all_chains['mangle'].items())
+        >>> len(R.all_chains['marble'].items())
         Traceback (most recent call last):
         ...
-        KeyError: 'mangle'
+        KeyError: 'marble'
         >>> len(R.all_chains['filter']['INPUT']['rules'])
         0
         >>> R.all_chains['filter']['OUTPUT']['policy']
@@ -68,7 +68,7 @@ class Ruleset:
         """
         
         self.all_chains = dict({})
-        for tb in ['nat','filter']:
+        for tb in ['mangle','nat','filter']:
             self.all_chains[tb] = dict()
         
         # Initialize default chains
@@ -281,13 +281,13 @@ class Ruleset:
         
         counters = dict({
             'filter': ['INPUT','FORWARD','OUTPUT'],
-            'nat': ['PREROUTING','POSTROUTING','OUTPUT']
+            'nat': ['PREROUTING','POSTROUTING','OUTPUT'],
+            'mangle': ['PREROUTING','OUTPUT']
         })
         
         f = open(filename,'w')
         
-        for tb in ['nat','filter']:
-            table = self.all_chains[tb]
+        for tb,table in sorted(self.all_chains.iteritems()):
             
             # Write down what the table does
             f.write('\n\n\n\n###     \n###     {0}\n###     \n\n'.format(
@@ -297,6 +297,7 @@ class Ruleset:
             
             # Write the chain declarations for all buitin chains
             for ch in counters[tb]:
+                if not ch in table: continue
                 f.write(':{0} {1} [0:0]\n'.format(ch,table[ch]['policy']))
             
             # Write the chain declarations for all user-defined chains
