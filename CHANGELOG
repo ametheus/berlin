@@ -41,3 +41,7 @@
 
 2011-10-26 Thijs van Dijk
         * The resulting package kept being rejected by ubuntu. D'oh!
+
+2011-10-27 Thijs van Dijk                                                 v0.5a1
+        * Implemented simple class based QoS.
+          Basically, your internet connection becomes a series of tubes.
