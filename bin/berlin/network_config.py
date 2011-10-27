@@ -179,12 +179,26 @@ class Config:
             self.open_port(portfile)
         
         
+        # Get the upstream network bandwidth (in kbps, for QoS purposes) for each interface.
+        # If an interface is absent, or set to 'disabled', QoS is disabled.
+        qos_bw = dict({})
+        for Q in self.ifconfig['qos upstream bandwidth']:
+            if Q == 'undefined': continue
+            Q = Q.split('-')
+            if len(Q) != 2: continue
+            if Q[1] == 'disabled': continue
+            qos_bw[ Q[0] ] = int(Q[1])
+                
+        
         # Get a list of subnets
         nets = list_directory('networks')
         
         gb = None
         for ifx in s.splitlines():
-            I = Iface( ifx.strip(), self.ifconfig, nets )
+            ifx = ifx.strip()
+            I = Iface( ifx, self.ifconfig, nets )
+            if ifx in qos_bw:
+                I.qos_bandwidth = qos_bw[ ifx ]
             
             if gb is None and I.enabled and not I.wan_interface:
                 gb = I
@@ -263,6 +277,7 @@ class Config:
             [ d.address     for d in self.Interfaces if d.wan_interface and d.enabled ]
         rv['external interface'] = \
             [ d.name        for d in self.Interfaces if d.wan_interface and d.enabled ]
+        rv['qos upstream bandwidth'] = self.qos_upstream_bandwidth
         rv['internal interface'] = \
             [ d.name        for d in self.Interfaces if not d.wan_interface and d.enabled ]
         
@@ -383,6 +398,8 @@ class Iface:
     address = '0.0.0.0'
     dhcp = False
     enabled = False
+    
+    qos_bandwidth = False
     
     subnets = None
     

@@ -17,11 +17,24 @@
 #
 
 
-# debug "Restarting BIND"
-service bind9 restart
 
-# debug "Enabling IP forwarding"
+# Restart BIND, just for the heck of it
+service bind9 restart  >/dev/null
+
+# Enable IP forwarding in the kernel
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
+# Load appropriate kernel modules (if not present already)
+modprobe ip_conntrack_ftp
+modprobe ip_nat_ftp
 
+# Load the iptables rules
 iptables-restore /etc/berlin/rules
+
+# Load the tc trees, if present
+if [ -f /etc/berlin/qos-qdisc ]
+then
+    tc -force -batch /etc/berlin/qos-qdisc 2>/dev/null
+fi
+
+exit 0

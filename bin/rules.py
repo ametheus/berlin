@@ -19,20 +19,8 @@
 
 from getpass import getuser
 from berlin import Config, debug, Berlin
+from berlin.qos import create_qos_qdisc
 import subprocess
-
-if getuser() == 'root':
-    debug( -1, "Restarting BIND" )
-    subprocess.call([ 'service', 'bind9', 'start' ])
-    
-    debug( -1, "Enabling IP forwarding" )
-    subprocess.call([ 'sh', '-c',
-        'echo 1 > /proc/sys/net/ipv4/ip_forward' ])
-    
-    subprocess.call(['/sbin/modprobe', 'ip_conntrack_ftp'])
-    subprocess.call(['/sbin/modprobe', 'ip_nat_ftp'])
-else:
-    debug( 1, "Note: you are not root." )
 
 debug( 0, "Detecting configuration... ", False )
 C = Config()
@@ -42,4 +30,10 @@ debug( 0, "Constructing iptables rules..." )
 V = Berlin()
 V.import_config( C )
 V.output_chains( '/etc/berlin/rules' if getuser() == 'root' else '/tmp/rules' )
+debug( 0, "Done." )
+
+debug( 0, "Constructing QoS-capable qdisc's..." )
+qf = open( '/etc/berlin/qos-qdisc' if getuser() == 'root' else '/tmp/qos-qdisc', 'w' )
+create_qos_qdisc( C, file=qf )
+qf.close()
 debug( 0, "Done." )
