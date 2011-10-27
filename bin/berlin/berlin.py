@@ -56,7 +56,7 @@ class Berlin(Ruleset):
             table='nat'
         )
     
-    def qos_chains( self ):
+    def qos_chains( self, external_interfaces ):
         """Generate chains needed for QoS.
         
         There are 7 priority levels in all. They are, in descending order:
@@ -91,6 +91,8 @@ class Berlin(Ruleset):
         self.append_chain('PREROUTING','-p tcp -m multiport --sports 194,25565 -j MARK --set-mark 0x1',     table='mangle')
         self.append_chain('PREROUTING','-p tcp -m multiport --sports 194,25565 -j RETURN',                  table='mangle')
         
+        self.append_chain('PREROUTING','-p tcp -m tcp --tcp-flags SYN,RST,ACK ACK -j MARK --set-mark 0x2',  table='mangle')
+        self.append_chain('PREROUTING','-p tcp -m tcp --tcp-flags SYN,RST,ACK ACK -j RETURN',               table='mangle')
         self.append_chain('PREROUTING','-p tcp -m tcp --sport 22 -j MARK --set-mark 0x2',                   table='mangle')
         self.append_chain('PREROUTING','-p tcp -m tcp --sport 22 -j RETURN',                                table='mangle')
         self.append_chain('PREROUTING','-p tcp -m tcp --dport 22 -j MARK --set-mark 0x2',                   table='mangle')
@@ -136,7 +138,7 @@ class Berlin(Ruleset):
         
         self.reset()
         if len([ I for I in Ext if I.qos_bandwidth ]):
-            self.qos_chains()
+            self.qos_chains(Ext)
         
         self.append_chain('INPUT','#Loopback interface is valid' )
         self.append_chain('INPUT','-i lo -j ACCEPT')
