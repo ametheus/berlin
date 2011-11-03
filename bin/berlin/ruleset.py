@@ -53,7 +53,7 @@ class Ruleset:
         >>> R = Ruleset()
         >>> R.reset()
         >>> len(R.all_chains.items())
-        2
+        3
         >>> len(R.all_chains['filter'].items())
         3
         >>> len(R.all_chains['marble'].items())
@@ -253,26 +253,27 @@ class Ruleset:
         <BLANKLINE>
         ...
         ###     
-        ...
-        ###     
+        ...    
         <BLANKLINE>
-        *nat
-        :PREROUTING ACCEPT [0:0]
-        :POSTROUTING ACCEPT [0:0]
-        :OUTPUT ACCEPT [0:0]
+        *filter
+        ...
         COMMIT
         <BLANKLINE>
         ...
         ###     
         ...
+        <BLANKLINE>
+        *mangle
+        <BLANKLINE>
+        <BLANKLINE>
+        COMMIT
+        <BLANKLINE>
+        ...
         ###     
+        ...
         <BLANKLINE>
-        *filter
-        :INPUT DROP [0:0]
-        :FORWARD DROP [0:0]
-        :OUTPUT DROP [0:0]
-        <BLANKLINE>
-        <BLANKLINE>
+        *nat
+        ...
         COMMIT
         <BLANKLINE>
         >>> f.close()
