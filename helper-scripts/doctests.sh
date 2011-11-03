@@ -2,26 +2,37 @@
 
 cd $(dirname $0)/../bin
 
+E=0
+
 for F in  berlin/config_ui.py  berlin/network_config.py \
           berlin/ruleset.py    berlin/berlin.py         \
           berlin/qos.py
 do
     echo -n "Running doctests from file [$F]... "
     python $F $@
+    err=$?
     
-    if [ $? -ne 0 ]
+    E=$(( E + $err ))
+    if [ "$err" = 0 ]
     then
-        echo ""
-        echo ""
-        echo ""
-        echo "Some doctests failed to run."
-        echo "In particular, the ones from [$F] failed miserably."
-        exit 1
+        echo "done."
+    else
+        echo "Doctests for file [$F] failed. (see above)"
+        echo "Counting $E errors so far."
     fi
-    
-    echo "done."
 done
 
-echo ""
-echo "All doctests passed with flying colours."
 
+if [ $E -ne 0 ]
+then
+    echo ""
+    echo ""
+    echo ""
+    echo "A total number of $E doctests failed to run."
+    exit $E
+else
+
+    echo ""
+    echo "All doctests passed with flying colours."
+
+fi
