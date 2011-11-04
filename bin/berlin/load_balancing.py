@@ -141,7 +141,7 @@ def ip_batch( C, file=False ):
     >>> E3 = X(wan_interface=True,name='ext-3',address='56.78.12.34',load_balance=3)
     
     >>> C1 = X(Interfaces=[I3, E1])
-    >>> C2 = X(Interfaces=[I1,I2, E1,E2])
+    >>> C2 = X(Interfaces=[I2, E1,E2])
     >>> C3 = X(Interfaces=[I1,I4, E1,E2,E3])
     
     >>> ip_batch(C1)
@@ -159,27 +159,24 @@ def ip_batch( C, file=False ):
     route add 12.34.56.0/24 dev ext-1 src 12.34.56.78
     route add default via ext-1
     <BLANKLINE>
+    route add default scope global nexthop via 12.34.56.1 dev ext-1 weight 1
+    <BLANKLINE>
     rule add from 12.34.56.78 table RText-1
     
     >>> ip_batch(C2)
     route flush table main
-    route flush table RTint-1
     route flush table RTint-2
     route flush table RText-1
     route flush table RText-2
     <BLANKLINE>
     route add 12.34.56.0/24 dev ext-1 src 12.34.56.78 table RText-1
     route add 34.56.78.0/24 dev ext-2 table RText-1
-    route add 192.168.10.0/24 dev int-1 table RText-1
-    route add 192.168.20.0/24 dev int-1 table RText-1
     route add 192.168.30.0/24 dev int-2 table RText-1
     route add 127.0.0.0/8 dev lo table RText-1
     route add default via 12.34.56.1 table RText-1
     <BLANKLINE>
     route add 34.56.78.0/24 dev ext-2 src 34.56.78.12 table RText-2
     route add 12.34.56.0/24 dev ext-1 table RText-2
-    route add 192.168.10.0/24 dev int-1 table RText-2
-    route add 192.168.20.0/24 dev int-1 table RText-2
     route add 192.168.30.0/24 dev int-2 table RText-2
     route add 127.0.0.0/8 dev lo table RText-2
     route add default via 34.56.78.1 table RText-2
@@ -187,6 +184,8 @@ def ip_batch( C, file=False ):
     route add 12.34.56.0/24 dev ext-1 src 12.34.56.78
     route add 34.56.78.0/24 dev ext-2 src 34.56.78.12
     route add default via ext-1
+    <BLANKLINE>
+    route add default scope global nexthop via 12.34.56.1 dev ext-1 weight 1 nexthop via 34.56.78.1 dev ext-2 weight 2
     <BLANKLINE>
     rule add from 12.34.56.78 table RText-1
     rule add from 34.56.78.12 table RText-2
@@ -228,6 +227,8 @@ def ip_batch( C, file=False ):
     route add 56.78.12.0/24 dev ext-3 src 56.78.12.34
     route add default via ext-1
     <BLANKLINE>
+    route add default scope global nexthop via 12.34.56.1 dev ext-1 weight 1 nexthop via 34.56.78.1 dev ext-2 weight 2 nexthop via 56.78.12.1 dev ext-3 weight 3
+    <BLANKLINE>
     rule add from 12.34.56.78 table RText-1
     rule add from 34.56.78.12 table RText-2
     rule add from 56.78.12.34 table RText-3
@@ -268,13 +269,13 @@ def ip_batch( C, file=False ):
                 []
         ]
         
-        lb_route += ['nexthop','via',gw(ifc),'dev',ifc.name,'weight',ifc.load_balance]
+        lb_route += ['nexthop','via',gw(ifc),'dev',ifc.name,'weight',str(ifc.load_balance)]
         
         rules += [['add','from',ifc.address,'table',T]]
     
     routes += main
     routes += [['add','default','via',Ext[0].name],
-        []]
+        [], lb_route, []]
     
     
     
