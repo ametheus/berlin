@@ -13,6 +13,7 @@ debian/compat
 debian/copyright
 debian/docs
 debian/files
+debian/patches
 debian/source
 debian/berlin
 debian/berlin.*
