@@ -277,7 +277,9 @@ class Config:
             [ d.address     for d in self.Interfaces if d.wan_interface and d.enabled ]
         rv['external interface'] = \
             [ d.name        for d in self.Interfaces if d.wan_interface and d.enabled ]
-        rv['qos upstream bandwidth'] = self.qos_upstream_bandwidth
+        rv['qos upstream bandwidth'] = \
+            [ '{0}-{1}'.format(d.name, str(d.qos_bandwidth) if d.qos_bandwidth else 'disabled') \
+                for d in self.Interfaces if d.wan_interface and d.enabled ]
         rv['internal interface'] = \
             [ d.name        for d in self.Interfaces if not d.wan_interface and d.enabled ]
         
