@@ -17,7 +17,6 @@
 
 """
 
-import subprocess
 from output import debug
 
 def create_qos_qdisc( C, file=False ):
