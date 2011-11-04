@@ -4,7 +4,7 @@ cd $(dirname $0)/../bin
 
 for F in  berlin/config_ui.py  berlin/network_config.py \
           berlin/ruleset.py    berlin/berlin.py         \
-          berlin/qos.py
+          berlin/qos.py        berlin/load_balancing.py
 do
     echo -n "Running doctests from file [$F]... "
     python $F $@
