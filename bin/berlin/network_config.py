@@ -400,6 +400,7 @@ class Iface:
     enabled = False
     
     qos_bandwidth = False
+    load_balance = 100.0
     
     subnets = None
     
